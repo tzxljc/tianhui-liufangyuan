@@ -20,6 +20,14 @@
             <h2>来自刘方园&&田烩的一封婚礼邀请函</h2>
         </header>
 
+        <div class="music-btn" id="musicBtn">
+            &#127928;
+        </div>
+
+        <audio id="bg-music" autoplay loop muted preload="auto" src="刘人语 - 心跳的证明.mp3">
+            <source src="刘人语 - 心跳的证明.mp3" type="audio/mp3">
+        </audio>
+
         <!--主体内容-->
         <main>
             <section>
@@ -245,6 +253,57 @@
     </div>
 
     <script>
+        // 1. 获取音频和按钮元素
+        const bgMusic = document.getElementById('bg-music');
+        const musicBtn = document.getElementById('musicBtn');
+
+        // 2. 页面加载后强制触发静音播放（关键：绕过浏览器延迟）
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // 强制播放静音音频（符合浏览器政策）
+                await bgMusic.play();
+                musicBtn.classList.add('playing'); // 启动转动动画
+                console.log('音乐已静音自动播放');
+            } catch (err) {
+                console.log('自动播放触发失败，需首次点击后播放:', err);
+                musicBtn.classList.remove('playing');
+            }
+        });
+
+
+        // 3. 首次点击页面任意位置：取消静音（不用只点图标）
+        document.addEventListener('click', () => {
+            if (bgMusic.muted) {
+                bgMusic.muted = false; // 取消静音
+                // 修正语法错误：逗号改点
+                if (bgMusic.paused) {
+                    bgMusic.play();
+                }
+            }
+        }, { once: true }); // 只执行一次
+
+        // 4. 点击音乐按钮：切换播放/暂停 + 动画状态
+        musicBtn.addEventListener('click', () => {
+            if (bgMusic.paused) {
+                bgMusic.play();
+                musicBtn.classList.add('playing');
+                musicBtn.classList.remove('paused');
+            } else {
+                bgMusic.pause();
+                musicBtn.classList.remove('playing');
+                musicBtn.classList.add('paused');
+            }
+        });
+
+        // 5. 音频状态同步（防止意外暂停）
+        bgMusic.addEventListener('play', () => {
+            musicBtn.classList.add('playing');
+            musicBtn.classList.remove('paused');
+        });
+        bgMusic.addEventListener('pause', () => {
+            musicBtn.classList.remove('playing');
+            musicBtn.classList.add('paused');
+        });
 
         // 1. 设置你的婚礼时间（替换成实际的年、月、日、时、分、秒）
         const weddingTime = new Date("2026-02-13 13:14:00").getTime();
@@ -279,6 +338,8 @@
         updateCountdown();
         // 5. 每秒更新一次倒计时
         setInterval(updateCountdown, 1000);
+
+
 
     </script>
 </body>
