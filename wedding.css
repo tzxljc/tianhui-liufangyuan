@@ -8,12 +8,14 @@ body {
     background-color: white;
     min-height: 100vh;
     margin: 0;
-    padding: 0;
+    display: flex;
+    justify-content: center;
+    overflow-x: hidden;
+    padding: 10px 0;
 }
 
 .container {
     max-width: 600px;
-    margin: 20px auto;
     text-align: center;
     padding: 20px;
     background-color: rgb(188, 217, 231);
@@ -23,12 +25,15 @@ body {
     font-family: sans-serif, "Microsoft Yahei", "汉仪甜心体";
     font-size: 14px;
     line-height: 1.8;
+    transform-origin: top center;
+    transition: transform 0.1s ease;
+    margin: 0 auto;
 }
 
 #header {
     background-color: pink;
     border-radius: 15px;
-    padding: 10px;
+    padding: 20px;
     text-align: center;
     margin: -20px -20px 20px -20px;
     background-image: linear-gradient(pink, rgb(188, 217, 231));
@@ -36,25 +41,28 @@ body {
 
 #header h2 {
     margin: 0;
+    font-size: 18px;
 }
 
 .couple-section {
-    max-width: 500px;
+    max-width: 100%;
     margin: 30px auto;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 20px;
 }
 
 .couple-card {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 25px;
-    margin: 30px 0;
-    max-width: 600px;
-    width: 100%;
+    gap: 15px;
+    margin: 20px 0;
+    max-width: 400px;
+    padding: 10px;
     border-radius: 15px;
+    flex-wrap: nowrap !important;
 }
 
 .couple-card img {
@@ -93,22 +101,21 @@ body {
     align-items: center;
     gap: 15px;
     max-width: 500px;
-    width: 96%;
     margin: 20px auto;
-    padding: 0 20px;
+    padding: 0 10px;
+    flex-wrap: nowrap !important;
 }
 
 .split-text1 {
-    width: 55%;
+    width: 275px;
     font-size: 14px;
     text-align: left;
-    font-size: clamp(12px, 2.8vw, 14px);
     flex-shrink: 0;
 }
 
 .split-img1 {
-    width: 40%;
-    max-height: 300px;
+    width: 200px;
+    height: 300px;
     overflow: hidden;
 }
 
@@ -120,16 +127,15 @@ body {
 }
 
 .split-text2 {
-    width: 55%;
+    width: 275px;
     font-size: 14px;
     text-align: right;
-    font-size: clamp(12px, 2.8vw, 14px);
     flex-shrink: 0;
 }
 
 .split-img2 {
-    width: 40%;
-    max-height: 500px;
+    width: 200px;
+    height: 300px;
     overflow: hidden;
 }
 
@@ -146,40 +152,34 @@ body {
     font-size: 20px;
     margin: 0;
     line-height: 1.5;
-    font-size: clamp(16px, 4vw, 20px);
 }
 
 .double-wrap {
-    max-width: 600px;
-    width: 95%;
+    max-width: 570px;
     margin: 0 auto;
     flex-shrink: 0;
 }
 
 .double-text {
-    font-size: clamp(12px, 2.8vw, 14px);
-
+    font-size: 14px;
     text-align: center;
     margin-bottom: 15px;
 }
 
 .double-img-container {
-    max-width: 600px;
+    width: 570px;
     margin: 0 auto;
-    width: 100%;
     padding: 0 10px;
     display: flex;
     gap: 10px;
     flex-shrink: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
+    overflow-x: hidden !important;
+    flex-wrap: nowrap !important;
 }
 
 .double-img-container img {
-    width: 48%;
-    height: 280px;
-    height: clamp(180px, 40vw, 250px);
-    /* 高度随屏幕缩放（小屏180px，大屏250px） */
+    width: 273.6px;
+    height: 250px;
     object-fit: cover;
     border-radius: 15px;
     display: block;
@@ -187,12 +187,12 @@ body {
 }
 
 .countdown-container {
-    max-width: 900px;
+    width: 500px;
     margin: 30px auto;
     display: flex;
     gap: 20px;
     padding: 0 15px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap !important;
     justify-content: center;
     align-items: center;
 }
@@ -243,8 +243,7 @@ body {
 
 /*地址模块整体居中*/
 .address-section {
-    max-width: 580px;
-    width: 95%;
+    width: 551px;
     margin: 20px auto;
     padding: 0 15px;
     flex-shrink: 0;
@@ -257,14 +256,13 @@ body {
     justify-content: center;
     align-items: flex-start;
     flex-shrink: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
+    overflow-x: hidden !important;
+    flex-wrap: nowrap !important;
 }
 
 /*单个地址项*/
 .address-item {
-    width: 48%;
-    max-width: 280px;
+    width: 264px;
     text-align: center;
     flex-shrink: 0;
 }
@@ -336,88 +334,27 @@ body {
 }
 
 /* 响应式断点 */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
     .container {
-        width: 98%;
-        padding: 15px;
-        box-shadow: none;
+        transform: scale(calc(100vw / 600));
+        /* 按屏幕宽度/基准宽度缩放 */
+        width: 600px;
+        /* 保持基准宽度 */
+        max-width: none;
+        padding: 20px;
+        margin: 0 auto;
     }
 
-    #header {
-        padding: 15px;
-        margin: -15px -15px 20px -15px;
-    }
-
-    /* 仅缩小图片尺寸，保留横向布局 */
-    .couple-card img {
-        max-width: 130px;
-        min-height: 110px;
-    }
-
-    .double-img-container img {
-        height: clamp(150px, 35vw, 220px);
-    }
-
-    #wedding-photo_wrap,
-    #ending {
-        width: calc(100% + 30px);
-        /* 15+15=30px */
-        margin: 20px -15px;
-        /* 左右-15px抵消container的padding */
+    body {
+        padding: 0;
+        /* 去掉body padding，避免缩放后留白 */
     }
 }
 
-
-/* 极小屏手机适配（480px以下，如iPhone SE） */
-@media (max-width: 480px) {
+/* 极小屏（400px以下）：微调缩放，避免过度缩小 */
+@media (max-width: 400px) {
     .container {
-        padding: 10px;
-        min-height: auto;
-    }
-
-    #header {
-        padding: 12px;
-        margin: -10px -10px 20px -10px;
-    }
-
-    #header h2 {
-        font-size: clamp(16px, 4vw, 18px);
-    }
-
-    /* 仅缩小图片，仍保留横向 */
-    .couple-card img {
-        max-width: 120px;
-        min-height: 100px;
-    }
-
-    .art-font {
-        font-size: clamp(20px, 5vw, 28px);
-    }
-
-    /* split布局极小屏仅缩小最大高度 */
-    .split-img1,
-    .split-img2 {
-        max-height: 200px;
-    }
-
-    .double-img-container img {
-        height: clamp(120px, 30vw, 180px);
-    }
-
-    #wedding-photo_wrap,
-    #ending {
-        width: calc(100% + 20px);
-        /* 10+10=20px */
-        margin: 20px -10px;
-        /* 左右-10px抵消container的padding */
-        min-height: clamp(300px, 60vw, 400px);
-        /* 小屏高度自适应 */
-    }
-}
-
-/* 桌面端小屏适配 */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .container {
-        max-width: 90%;
+        transform: scale(calc(95vw / 600));
+        /* 稍微留一点边距 */
     }
 }
