@@ -1,0 +1,423 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: white;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 600px;
+    margin: 20px auto;
+    text-align: center;
+    padding: 20px;
+    background-color: rgb(188, 217, 231);
+    border: 1px solid #eee;
+    border-radius: 15px;
+    color: #151111;
+    font-family: sans-serif, "Microsoft Yahei", "汉仪甜心体";
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+#header {
+    background-color: pink;
+    border-radius: 15px;
+    padding: 10px;
+    text-align: center;
+    margin: -20px -20px 20px -20px;
+    background-image: linear-gradient(pink, rgb(188, 217, 231));
+}
+
+#header h2 {
+    margin: 0;
+}
+
+.couple-section {
+    max-width: 500px;
+    margin: 30px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.couple-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    margin: 30px 0;
+    max-width: 600px;
+    width: 100%;
+    border-radius: 15px;
+}
+
+.couple-card img {
+    width: 140px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+    /*禁止图片被压缩*/
+}
+
+.couple-text {
+    text-align: left;
+}
+
+.art-font {
+    font-family: 'Great Vibes', cursive;
+    font-size: 32px;
+    color: #8b3a62;
+    margin: 0;
+    line-height: 1;
+}
+
+.role {
+    margin: 5px 0;
+}
+
+.name {
+    margin-left: 60px;
+}
+
+.split-layout1,
+.split-layout2 {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    max-width: 500px;
+    width: 96%;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+.split-text1 {
+    width: 55%;
+    font-size: 14px;
+    text-align: left;
+    font-size: clamp(12px, 2.8vw, 14px);
+    flex-shrink: 0;
+}
+
+.split-img1 {
+    width: 40%;
+    max-height: 300px;
+    overflow: hidden;
+}
+
+.split-img1 img {
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+    object-fit: cover;
+}
+
+.split-text2 {
+    width: 55%;
+    font-size: 14px;
+    text-align: right;
+    font-size: clamp(12px, 2.8vw, 14px);
+    flex-shrink: 0;
+}
+
+.split-img2 {
+    width: 40%;
+    max-height: 500px;
+    overflow: hidden;
+}
+
+.split-img2 img {
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+    object-fit: cover;
+}
+
+.split-slogan1,
+.split-slogan2 {
+    color: #7a1939;
+    font-size: 20px;
+    margin: 0;
+    line-height: 1.5;
+    font-size: clamp(16px, 4vw, 20px);
+}
+
+.double-wrap {
+    max-width: 600px;
+    width: 95%;
+    margin: 0 auto;
+    flex-shrink: 0;
+}
+
+.double-text {
+    font-size: clamp(12px, 2.8vw, 14px);
+
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.double-img-container {
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 10px;
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.double-img-container img {
+    width: 48%;
+    height: 280px;
+    height: clamp(180px, 40vw, 250px);
+    /* 高度随屏幕缩放（小屏180px，大屏250px） */
+    object-fit: cover;
+    border-radius: 15px;
+    display: block;
+    flex-shrink: 0;
+}
+
+.countdown-container {
+    max-width: 900px;
+    margin: 30px auto;
+    display: flex;
+    gap: 20px;
+    padding: 0 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.countdown-nums {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.countdown-item {
+    background-color: #7a1939;
+    color: white;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.countdown-item span {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.countdown-item p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.countdown-img {
+    max-width: 300px;
+    max-height: 400px;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: block;
+    border-radius: 15px;
+}
+
+.countdown-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/*地址模块整体居中*/
+.address-section {
+    max-width: 580px;
+    width: 95%;
+    margin: 20px auto;
+    padding: 0 15px;
+    flex-shrink: 0;
+}
+
+/*外层flex：实现两列并排*/
+.address-list {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: flex-start;
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+/*单个地址项*/
+.address-item {
+    width: 48%;
+    max-width: 280px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/*地图容器*/
+.address-map {
+    width: 100%;
+    aspect-ratio: 1/1;
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+/*地图图片*/
+.address-map img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.address-info {
+    margin-top: 10px;
+}
+
+.address-info a {
+    font-size: 14px;
+    color: #7a1939;
+    text-decoration: none;
+    line-height: 1.6;
+}
+
+#wedding-photo_wrap {
+    background: linear-gradient(rgb(188, 217, 231),
+            rgba(188, 217, 231, 0.9) 5%,
+            rgba(188, 217, 231, 0.4) 15%,
+            rgba(188, 217, 231, 0) 30%,
+            rgba(188, 217, 231, 0) 70%,
+            rgba(188, 217, 231, 0.4) 85%,
+            rgba(188, 217, 231, 0.9) 95%,
+            rgb(188, 217, 231)), url("y_339A3249_1.jpg");
+    background-size: cover;
+    background-position: center;
+    min-height: 600px;
+    width: calc(100% + 40px);
+    margin: 20px -20px;
+    padding: 40px 20px;
+    box-sizing: border-box;
+    border-radius: 15px;
+}
+
+#ending {
+    background: linear-gradient(rgb(188, 217, 231),
+            rgba(188, 217, 231, 0.8) 20%,
+            rgba(188, 217, 231, 0) 50%,
+            rgba(188, 217, 231, 0) 80%,
+            rgba(0, 0, 0, 0.3)
+            /* 底部轻微暗化，不影响顶部渐变柔和度 */
+        ), url("y_339A3259_1.jpg");
+    background-size: cover;
+    background-position: center;
+    min-height: 600px;
+    width: calc(100% + 40px);
+    margin: 20px -20px;
+    padding: 40px 20px;
+    box-sizing: border-box;
+    border-radius: 15px;
+}
+
+/* 响应式断点 */
+@media (max-width: 768px) {
+    .container {
+        width: 98%;
+        padding: 15px;
+        box-shadow: none;
+    }
+
+    #header {
+        padding: 15px;
+        margin: -15px -15px 20px -15px;
+    }
+
+    /* 仅缩小图片尺寸，保留横向布局 */
+    .couple-card img {
+        max-width: 130px;
+        min-height: 110px;
+    }
+
+    .double-img-container img {
+        height: clamp(150px, 35vw, 220px);
+    }
+
+    #wedding-photo_wrap,
+    #ending {
+        width: calc(100% + 30px);
+        /* 15+15=30px */
+        margin: 20px -15px;
+        /* 左右-15px抵消container的padding */
+    }
+}
+
+
+/* 极小屏手机适配（480px以下，如iPhone SE） */
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+        min-height: auto;
+    }
+
+    #header {
+        padding: 12px;
+        margin: -10px -10px 20px -10px;
+    }
+
+    #header h2 {
+        font-size: clamp(16px, 4vw, 18px);
+    }
+
+    /* 仅缩小图片，仍保留横向 */
+    .couple-card img {
+        max-width: 120px;
+        min-height: 100px;
+    }
+
+    .art-font {
+        font-size: clamp(20px, 5vw, 28px);
+    }
+
+    /* split布局极小屏仅缩小最大高度 */
+    .split-img1,
+    .split-img2 {
+        max-height: 200px;
+    }
+
+    .double-img-container img {
+        height: clamp(120px, 30vw, 180px);
+    }
+
+    #wedding-photo_wrap,
+    #ending {
+        width: calc(100% + 20px);
+        /* 10+10=20px */
+        margin: 20px -10px;
+        /* 左右-10px抵消container的padding */
+        min-height: clamp(300px, 60vw, 400px);
+        /* 小屏高度自适应 */
+    }
+}
+
+/* 桌面端小屏适配 */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .container {
+        max-width: 90%;
+    }
+}
