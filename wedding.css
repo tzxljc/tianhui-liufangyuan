@@ -111,19 +111,15 @@ body {
 
 /* 艺术字容器 - 在下方 */
 .art-title {
-    font-family: 'Great Vibes', cursive !important;
-    font-size: 48px !important;
+    font-family: 'Parisienne', cursive !important;
+    font-size: 80px !important;
     /* 较大的艺术字 */
     color: #8b3a62 !important;
     line-height: 1;
     letter-spacing: 3px;
-    text-align: center;
+    text-align: left;
     margin-top: -10px;
     /* 负边距让艺术字更靠近图片 */
-    margin-left: auto;
-    /* 与图片对齐，也靠右 */
-    margin-right: 20px;
-    /* 与图片相同的右边距 */
     padding: 5px 0;
 }
 
@@ -595,28 +591,18 @@ body {
     }
 
     .art-image-wrapper {
-        margin-left: auto;
-        /* 保持靠右 */
-        margin-right: 15px;
-        /* 小屏幕右边距减小一点 */
         max-width: 85%;
         /* 稍微缩小一点，给小屏幕留出右边空间 */
     }
 
     .art-image {
-        height: 450px;
-        /* 保持450px高度 */
+        height: 400px;
     }
 
     .art-title {
-        margin-top: -10px;
-        margin-left: auto;
-        /* 保持与图片对齐 */
-        margin-right: 15px;
-        /* 与图片相同的右边距 */
-        font-size: 36px !important;
-        text-align: center;
-        /* 文字内容居中，但容器偏右 */
+        font-family: 'Parisienne', cursive !important;
+        font-size: 28px !important;
+        color: #8b3a62 !important;
     }
 
     .art-photo-module {
@@ -769,29 +755,15 @@ body {
         /* 保持左对齐 */
     }
 
-    .art-image-wrapper {
-        margin-left: auto;
-        /* 保持靠右 */
-        margin-right: 10px;
-        /* 更小的右边距 */
-        max-width: 80%;
-        /* 更窄一点，给小屏幕留出更多右边空间 */
-    }
-
     .art-image {
-        height: 450px;
+        height: 400px;
         /* 保持450px高度 */
     }
 
     .art-title {
-        margin-top: -10px;
-        margin-left: auto;
-        /* 保持与图片对齐 */
-        margin-right: 10px;
-        /* 与图片相同的右边距 */
-        font-size: 32px !important;
-        text-align: center;
-        /* 文字内容居中，但容器偏右 */
+        font-family: 'Parisienne', cursive !important;
+        font-size: 26px !important;
+        color: #8b3a62 !important;
     }
 
     .split-layout1,
@@ -980,21 +952,6 @@ body {
         font-size: 13px;
     }
 
-    /* 删除这个重复的art-image-container规则 */
-    /*
-    .art-image-container {
-        gap: 20px;
-        padding: 15px;
-    }
-    */
-
-    /* 删除这个重复的art-image-wrapper规则 */
-    /*
-    .art-image-wrapper {
-        max-width: 350px;
-    }
-    */
-
     /* Yes, I do 艺术字体缩小 */
     .art-text-yes,
     .art-text-ido {
@@ -1087,12 +1044,6 @@ body {
         padding: 12px;
     }
 
-    /* 删除或注释掉这些行 */
-    /*
-    .art-image-wrapper {
-        max-width: 450px;
-    }
-    */
 
     .art-image {
         height: 450px;
@@ -1100,28 +1051,10 @@ body {
     }
 
     .art-title {
-        font-size: 36px !important;
+        font-family: 'Parisienne', cursive !important;
+        font-size: 24px !important;
+        color: #8b3a62 !important;
     }
-
-    /* 删除这些重复的规则 */
-    /*
-    .art-image-container {
-        padding: 12px;
-    }
-
-    .art-image-wrapper {
-        flex: 0 0 160px;
-        max-width: 160px;
-    }
-
-    .art-image {
-        height: 200px;
-    }
-
-    .art-title {
-        font-size: 32px !important;
-    }
-    */
 
     .split-layout1,
     .split-layout2 {
