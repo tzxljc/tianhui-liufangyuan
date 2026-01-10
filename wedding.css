@@ -28,6 +28,7 @@ body {
     transform-origin: top center;
     transition: transform 0.1s ease;
     margin: 0 auto;
+    position: relative !important;
 }
 
 #header {
@@ -45,7 +46,7 @@ body {
 }
 
 .music-btn {
-    position: fixed;
+    position: absolute;
     top: 20px;
     right: 20px;
     width: 40px;
@@ -60,8 +61,6 @@ body {
     font-size: 20px;
     cursor: pointer;
     z-index: 9999;
-    /* 保证在所有元素上层 */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 定义循环转动的动画 */
@@ -377,12 +376,11 @@ body {
 @media (max-width: 600px) {
     .container {
         transform: scale(calc(100vw / 600));
-        /* 按屏幕宽度/基准宽度缩放 */
         width: 600px;
-        /* 保持基准宽度 */
         max-width: none;
         padding: 20px;
         margin: 0 auto;
+        position: relative !important;
     }
 
     body {
