@@ -524,7 +524,7 @@ body {
 
     .role,
     .name {
-        font-size: 13px;
+        font-size: 12px;
     }
 
     /* Yes, I do 艺术字体缩小 */
@@ -536,6 +536,10 @@ body {
     /* 双图容器缩小 */
     .double-img-container img {
         height: 180px;
+    }
+
+    .double-text {
+        font-size: 12px;
     }
 
     /* 倒计时模块调整 */
@@ -664,6 +668,10 @@ body {
         height: 150px;
     }
 
+    .double-text {
+        font-size: 11px;
+    }
+
     .countdown-container {
         gap: 12px;
         padding: 0 8px;
@@ -714,7 +722,7 @@ body {
 
     .split-text1,
     .split-text2 {
-        font-size: 12px;
+        font-size: 10px;
     }
 
     .split-slogan1,
@@ -736,6 +744,14 @@ body {
         font-size: 20px;
     }
 
+    .double-img-container img {
+        height: 140px;
+    }
+
+    .double-text {
+        font-size: 10px;
+    }
+
     .countdown-container {
         gap: 10px;
         padding: 0 6px;
@@ -747,7 +763,7 @@ body {
     }
 
     .countdown-item span {
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .countdown-img {
