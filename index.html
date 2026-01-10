@@ -13,6 +13,16 @@
 </head>
 
 <body>
+
+    <!-- 启动遮罩层 -->
+    <div id="start-mask">
+        <h1>💌 婚礼邀请函 💌</h1>
+        <p>来自刘方园 & 田烩的婚礼邀请</p>
+        <p>轻触下方按钮，开启幸福旅程</p>
+        <button id="start-button">开启幸福之旅</button>
+        <p style="font-size: 14px; color: #666; margin-top: 30px;">建议在WiFi环境下浏览</p>
+    </div>
+
     <!--外层框架-->
     <div class="container">
 
@@ -267,242 +277,330 @@
     </audio>
 
     <script>
-        // ========== 1. 核心变量定义 ==========
+        // ========== 1. 初始化变量 ==========
         const bgMusic = document.getElementById('bg-music');
         const musicBtn = document.getElementById('musicBtn');
         const container = document.querySelector('.container');
+        const startMask = document.getElementById('start-mask');
+        const startButton = document.getElementById('start-button');
 
-        // 自动下滑配置
-        const scrollSpeed = 20; // 稍微加快一点
-        let autoScrollActive = true;
+        // 自动滚动配置
+        let autoScrollActive = false;
         let isUserInteracting = false;
-        let interactionTimer = null;
         let scrollInterval = null;
-        let lastScrollTime = 0;
+        let resumeTimer = null;
+        let musicPlayed = false;
+        let pageStarted = false;
 
-        // ========== 2. 音乐控制逻辑（优化版） ==========
-        function initMusic() {
-            // iOS Safari需要用户交互才能播放音频
-            const playMusic = () => {
+        // ========== 2. 通用兼容性检测 ==========
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isAndroid = /Android/.test(navigator.userAgent);
+        const isWechat = /MicroMessenger/.test(navigator.userAgent);
+        const isQQ = /QQ/.test(navigator.userAgent);
+
+        console.log('浏览器信息:', {
+            userAgent: navigator.userAgent,
+            isIOS,
+            isAndroid,
+            isWechat,
+            isQQ
+        });
+
+        // ========== 3. 启动页面 ==========
+        function startPage() {
+            if (pageStarted) return;
+            pageStarted = true;
+
+            // 隐藏启动遮罩层
+            startMask.style.opacity = '0';
+            setTimeout(() => {
+                startMask.style.display = 'none';
+            }, 300);
+
+            // 尝试播放音乐（所有浏览器都需要用户交互）
+            try {
                 bgMusic.muted = false;
-                bgMusic.play().then(() => {
-                    musicBtn.classList.add('playing');
-                    musicBtn.classList.remove('paused');
-                    console.log("音乐开始播放");
-                }).catch(err => {
-                    console.log("音乐播放被阻止，需要用户交互");
-                    // 显示提示让用户点击
-                    musicBtn.style.animation = 'pulse 1s infinite';
-                });
-            };
+                const playPromise = bgMusic.play();
 
-            // 点击音乐按钮时播放
-            musicBtn.addEventListener('click', (e) => {
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log('音乐自动播放成功');
+                        musicPlayed = true;
+                        musicBtn.classList.add('playing');
+                        musicBtn.classList.remove('paused');
+                    }).catch(error => {
+                        console.log('音乐自动播放被阻止:', error);
+                        // 显示提示，让用户手动点击播放
+                        musicBtn.style.border = '2px solid #ff69b4';
+                        musicBtn.style.animation = 'pulse 1s infinite';
+                    });
+                }
+            } catch (error) {
+                console.log('音乐播放出错:', error);
+            }
+
+            // 开始自动滚动
+            setTimeout(() => {
+                startAutoScroll();
+            }, 1000);
+        }
+
+        // ========== 4. 音乐控制（兼容所有浏览器） ==========
+        function setupMusic() {
+            // 点击音乐按钮
+            musicBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
+                toggleMusic();
+            });
+
+            musicBtn.addEventListener('touchstart', function (e) {
+                e.stopPropagation();
+                toggleMusic();
+            });
+
+            function toggleMusic() {
                 if (bgMusic.paused) {
-                    playMusic();
+                    // 先取消静音，再播放
+                    bgMusic.muted = false;
+                    bgMusic.play().then(() => {
+                        musicBtn.classList.add('playing');
+                        musicBtn.classList.remove('paused');
+                        musicBtn.style.border = 'none';
+                        musicBtn.style.animation = 'none';
+                    }).catch(err => {
+                        console.log('手动播放失败:', err);
+                    });
                 } else {
                     bgMusic.pause();
                     musicBtn.classList.remove('playing');
                     musicBtn.classList.add('paused');
                 }
-            });
-
-            musicBtn.addEventListener('touchstart', (e) => {
-                e.stopPropagation();
-                if (bgMusic.paused) {
-                    playMusic();
-                } else {
-                    bgMusic.pause();
-                    musicBtn.classList.remove('playing');
-                    musicBtn.classList.add('paused');
-                }
-            });
+            }
 
             // 音频状态同步
             bgMusic.addEventListener('play', () => {
                 musicBtn.classList.add('playing');
                 musicBtn.classList.remove('paused');
-                musicBtn.style.animation = 'none';
+                musicPlayed = true;
             });
 
             bgMusic.addEventListener('pause', () => {
                 musicBtn.classList.remove('playing');
                 musicBtn.classList.add('paused');
             });
+
+            // 处理音频加载错误
+            bgMusic.addEventListener('error', (e) => {
+                console.log('音频加载错误:', e);
+                musicBtn.innerHTML = '❌';
+                musicBtn.title = '音乐加载失败';
+            });
         }
 
-        // ========== 3. 手机端优化的自动滑动逻辑 ==========
-        function initAutoScroll() {
-            // 使用setInterval替代requestAnimationFrame（更稳定）
-            function startAutoScroll() {
-                if (scrollInterval) {
-                    clearInterval(scrollInterval);
-                }
+        // ========== 5. 自动滚动（兼容所有浏览器） ==========
+        function setupAutoScroll() {
+            const SCROLL_SPEED = 15; // 像素/秒
 
-                scrollInterval = setInterval(() => {
+            function startAutoScroll() {
+                if (autoScrollActive) return;
+                autoScrollActive = true;
+
+                let lastTime = Date.now();
+
+                // 使用requestAnimationFrame优先，setInterval备选
+                function scrollFrame() {
                     if (!autoScrollActive || isUserInteracting) {
+                        if (scrollInterval) {
+                            clearInterval(scrollInterval);
+                            scrollInterval = null;
+                        }
                         return;
                     }
 
                     const currentTime = Date.now();
-                    const deltaTime = Math.min(currentTime - lastScrollTime, 100); // 限制最大间隔
-                    lastScrollTime = currentTime;
+                    const deltaTime = currentTime - lastTime;
+                    lastTime = currentTime;
 
                     // 计算滚动的像素
-                    const pixelsToScroll = (scrollSpeed * deltaTime) / 1000;
+                    const pixelsToScroll = (SCROLL_SPEED * deltaTime) / 1000;
 
                     // 判断是否到达底部
-                    const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 20;
+                    const scrollRemaining = container.scrollHeight - container.clientHeight - container.scrollTop;
 
-                    if (isAtBottom) {
-                        // 到达底部，回到顶部
-                        container.scrollTo({
-                            top: 0,
-                            behavior: 'smooth'
-                        });
-                        return;
-                    }
-
-                    // 正常滚动
-                    container.scrollBy({
-                        top: pixelsToScroll,
-                        behavior: 'instant'
-                    });
-                }, 16); // 约60fps
-            }
-
-            // 停止自动滚动
-            function stopAutoScroll() {
-                if (scrollInterval) {
-                    clearInterval(scrollInterval);
-                    scrollInterval = null;
+                    if (scrollRemaining <= 10) { // 到达底部，回到顶部 container.scrollTo({ top: 0, behavior: 'smooth' }); return; } // 正常滚动
+                        container.scrollTop += pixelsToScroll;
+                    } // 优先使用requestAnimationFrame if ('requestAnimationFrame' in window) {
+                    function animateScroll() {
+                        scrollFrame(); if (autoScrollActive && !isUserInteracting) {
+                            requestAnimationFrame(animateScroll);
+                        }
+                    } requestAnimationFrame(animateScroll);
+                } else { // 降级到setInterval
+                    scrollInterval = setInterval(scrollFrame, 16);
                 }
-            }
-
-            // 用户交互处理
-            function handleUserInteraction() {
-                isUserInteracting = true;
-                stopAutoScroll();
-
-                if (interactionTimer) {
-                    clearTimeout(interactionTimer);
-                }
-
-                // 用户停止操作3秒后恢复自动滑动
-                interactionTimer = setTimeout(() => {
+            } function stopAutoScroll() {
+                autoScrollActive = false; if
+                    (scrollInterval) { clearInterval(scrollInterval); scrollInterval = null; }
+            } function handleUserInteraction() {
+                isUserInteracting = true; stopAutoScroll(); // 清除之前的恢复计时器 if (resumeTimer) { clearTimeout(resumeTimer); } //
+        用户停止操作3秒后恢复 resumeTimer = setTimeout(() => {
                     isUserInteracting = false;
-                    if (autoScrollActive) {
-                        lastScrollTime = Date.now();
+                    if (pageStarted) {
                         startAutoScroll();
                     }
                 }, 3000);
             }
 
-            // 事件监听（简化版）
-            let touchStartY = 0;
-            let touchEndY = 0;
+            // 简单的触摸/鼠标事件监听
+            let touchStartTime = 0;
 
             container.addEventListener('touchstart', (e) => {
-                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
                 handleUserInteraction();
             }, { passive: true });
 
-            container.addEventListener('touchmove', (e) => {
-                touchEndY = e.touches[0].clientY;
-                const deltaY = touchEndY - touchStartY;
-
-                // 只有在用户明显滑动时才暂停
-                if (Math.abs(deltaY) > 5) {
+            container.addEventListener('touchend', () => {
+                // 短暂触摸不暂停太久
+                if (Date.now() - touchStartTime < 300) {
+                    setTimeout(() => {
+                        isUserInteracting = false;
+                        if (pageStarted && !autoScrollActive) {
+                            startAutoScroll();
+                        }
+                    }, 100);
+                } else {
                     handleUserInteraction();
                 }
             }, { passive: true });
 
-            container.addEventListener('touchend', () => {
-                handleUserInteraction();
-            }, { passive: true });
-
-            // 鼠标滚轮事件
+            container.addEventListener('touchmove', handleUserInteraction, { passive: true });
             container.addEventListener('wheel', handleUserInteraction, { passive: true });
+            container.addEventListener('mousedown', handleUserInteraction);
+            container.addEventListener('mousemove', handleUserInteraction);
 
-            // 开始自动滚动
-            function startScrolling() {
-                autoScrollActive = true;
-                lastScrollTime = Date.now();
-                startAutoScroll();
-            }
-
-            // 页面加载后延迟开始
-            window.addEventListener('load', () => {
-                // 确保内容加载完成
-                setTimeout(startScrolling, 1000);
-            });
-
-            // 页面可见性变化处理
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
-                    // 页面隐藏时暂停
-                    stopAutoScroll();
-                } else {
-                    // 页面恢复时继续
-                    if (autoScrollActive && !isUserInteracting) {
-                        setTimeout(startScrolling, 500);
-                    }
+            // 监听滚动事件
+            container.addEventListener('scroll', () => {
+                if (!isUserInteracting) {
+                    handleUserInteraction();
                 }
             });
+
+            return {
+                start: startAutoScroll,
+                stop: stopAutoScroll
+            };
         }
 
-        // ========== 4. 倒计时逻辑 ==========
-        const weddingTime = new Date("2026-02-13 13:14:00").getTime();
-        const daysEl = document.getElementById('days');
-        const hoursEl = document.getElementById('hours');
-        const minutesEl = document.getElementById('minutes');
-        const secondsEl = document.getElementById('seconds');
+        // ========== 6. 倒计时逻辑 ==========
+        function setupCountdown() {
+            const weddingTime = new Date("2026-02-13 13:14:00").getTime();
+            const daysEl = document.getElementById('days');
+            const hoursEl = document.getElementById('hours');
+            const minutesEl = document.getElementById('minutes');
+            const secondsEl = document.getElementById('seconds');
 
-        function updateCountdown() {
-            const now = new Date().getTime();
-            const diff = weddingTime - now;
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const diff = weddingTime - now;
 
-            if (diff <= 0) {
-                daysEl.innerText = "00";
-                hoursEl.innerText = "00";
-                minutesEl.innerText = "00";
-                secondsEl.innerText = "00";
-                return;
+                if (diff <= 0) {
+                    daysEl.innerText = "00"; hoursEl.innerText = "00"; minutesEl.innerText = "00";
+                    secondsEl.innerText = "00"; return;
+                } const days = Math.floor(diff / 86400000); const
+                    hours = Math.floor((diff % 86400000) / 3600000); const minutes = Math.floor((diff % 3600000) / 60000); const
+                        seconds = Math.floor((diff % 60000) / 1000); daysEl.innerText = days.toString().padStart(2, '0');
+                hoursEl.innerText = hours.toString().padStart(2, '0');
+                minutesEl.innerText = minutes.toString().padStart(2, '0');
+                secondsEl.innerText = seconds.toString().padStart(2, '0');
+            } updateCountdown();
+            setInterval(updateCountdown, 1000);
+        } //==========7. 页面可见性处理==========function setupVisibilityHandler()
+        { // 页面可见性API let hidden, visibilityChange; if (typeof document.hidden !=="undefined" ) {
+            hidden = "hidden"; visibilityChange = "visibilitychange";
+        } else if (typeof document.msHidden
+            !== "undefined") { hidden = "msHidden"; visibilityChange = "msvisibilitychange"; } else if (typeof
+                document.webkitHidden !== "undefined") {
+            hidden = "webkitHidden";
+            visibilityChange = "webkitvisibilitychange";
+        } function handleVisibilityChange() {
+            if (document[hidden]) { // 页面隐藏，暂停音乐和滚动 if (!bgMusic.paused) { bgMusic.pause(); } autoScrollActive=false; } else { //
+                页面显示，恢复音乐和滚动 if (musicPlayed && bgMusic.paused) {
+                    bgMusic.play().catch(() => {
+                        // 自动播放可能被阻止
+                    });
+                }
+                if (pageStarted && !isUserInteracting) {
+                    setTimeout(() => {
+                        startAutoScroll();
+                    }, 1000);
+                }
             }
-
-            const days = Math.floor(diff / 86400000);
-            const hours = Math.floor((diff % 86400000) / 3600000);
-            const minutes = Math.floor((diff % 3600000) / 60000);
-            const seconds = Math.floor((diff % 60000) / 1000);
-
-            daysEl.innerText = days.toString().padStart(2, '0');
-            hoursEl.innerText = hours.toString().padStart(2, '0');
-            minutesEl.innerText = minutes.toString().padStart(2, '0');
-            secondsEl.innerText = seconds.toString().padStart(2, '0');
         }
 
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
+        if (typeof document.addEventListener !== "undefined" && hidden !== undefined) {
+            document.addEventListener(visibilityChange, handleVisibilityChange, false);
+        }
+                }
 
-        // ========== 5. 初始化所有功能 ==========
+        // ========== 8. 初始化所有功能 ==========
         function initAll() {
-            initMusic();
-            initAutoScroll();
+            // 设置启动按钮事件
+            startButton.addEventListener('click', startPage);
+            startMask.addEventListener('touchstart', startPage);
 
-            // 添加一个简单的CSS动画提示
+            // 允许整个页面点击启动（提高成功率）
+            document.addEventListener('click', function (e) {
+                if (!pageStarted && e.target !== startButton) {
+                    startPage();
+                }
+            }, { once: true });
+
+            // 设置音乐控制
+            setupMusic();
+
+            // 设置自动滚动
+            window.startAutoScroll = setupAutoScroll().start;
+
+            // 设置倒计时
+            setupCountdown();
+
+            // 设置页面可见性处理
+            setupVisibilityHandler();
+
+            // 添加CSS动画
             const style = document.createElement('style');
             style.textContent = `
-            @keyframes pulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.1); }
-                100% { transform: scale(1); }
-            }
-        `;
+                @keyframes pulse {
+                0% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.05); opacity: 0.8; }
+                100% { transform: scale(1); opacity: 1; }
+                }
+
+                @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+                }
+
+                #start-mask {
+                animation: fadeIn 0.5s ease-out;
+                }
+                `;
             document.head.appendChild(style);
+
+            // 如果是微信浏览器，显示额外提示
+            if (isWechat) {
+                setTimeout(() => {
+                    if (!pageStarted) {
+                        const wechatTip = document.createElement('div');
+                        wechatTip.innerHTML = '<p style="color:#666; font-size:12px; margin-top:10px;">
+                        如自动播放失效，请点击右上角"..." < br > 选择"在浏览器中打开"获得更好体验</p > ';
+                        startMask.appendChild(wechatTip);
+                    }
+                }, 3000);
+            }
         }
 
-        // DOM加载完成后初始化
+        // ========== 9. 页面加载完成后初始化 ==========
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initAll);
         } else {
