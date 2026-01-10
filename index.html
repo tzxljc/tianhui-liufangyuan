@@ -82,6 +82,17 @@
             </section>
 
             <section>
+                <!--艺术图文模块-->
+                <div class="art-photo-module">
+                    <p class="art-text art-text-yes">Yes,</p>
+                    <p class="art-text art-text-ido">I do.</p>
+
+                    <img src="y_339A3095_1.jpg" class="module-photo-right">
+                    <img src="y_339A3104_1.jpg" class="module-photo-left">
+                </div>
+            </section>
+
+            <section>
                 <div>
                     💫 关于我们的小剧场 💫<br />
                     从初遇到相守，每一段时光都写满了温柔与默契<br />
@@ -236,13 +247,14 @@
                         🎊 我们的婚礼，因你而圆满 🎊<br />
                         不追求盛大奢华，只希望与最爱的家人朋友们<br />
                         一起分享这份喜悦，见证我们的幸福时刻<br />
-                        期待与你，在充满爱的氛围里，共赴这场浪漫之约
+                        期待与你，在充满爱的氛围里，共赴这场浪漫之约<br /><br />
                     </p>
 
-                    ❤️ 感谢看到这里的你 ❤️<br />
+                    &#128150; 感谢看到这里的你 &#128150;<br />
                     我们的爱情序章落笔收梢，满溢的幸福即将启程<br />
-                    XXXX年XX月XX日，我们在XXX候你赴约<br />
-                    一起见证“我”蜕变成“我们”的珍贵时刻，共赴往后岁岁年年的崭新篇章<br />
+                    2026年2月13日，我们候你赴约<br />
+                    一起见证“我”蜕变成“我们”的珍贵时刻<br />
+                    共赴往后岁岁年年的崭新篇章<br />
                     盼你携着祝福而来，与我们一同定格这份圆满<br />
                 </div>
             </section>
@@ -259,78 +271,174 @@
         const bgMusic = document.getElementById('bg-music');
         const musicBtn = document.getElementById('musicBtn');
         const container = document.querySelector('.container');
-        // 自动下滑配置
-        const scrollStep = 50;
-        const scrollInterval = 300;
-        let autoScrollTimer = null;
 
-        // ========== 2. 音乐播放/暂停切换逻辑（核心修改：全局点击/触摸控制） ==========
+        // 自动下滑配置
+        const scrollSpeed = 15; // 调慢一点，更接近婚贝效果
+        const SCROLL_RESUME_DELAY = 3000; // 用户停止操作后3秒恢复
+        let autoScrollActive = true;
+        let isUserInteracting = false;
+        let resumeTimer = null;
+        let animationFrameId = null;
+        let musicInteractionLock = false;
+        const MUSIC_COOLDOWN = 800; // 0.8秒冷却
+
+        // ========== 2. 音乐控制逻辑 ==========
         function toggleMusic() {
-            // 第一步：先取消静音（首次点击时生效）
+            if (musicInteractionLock) return;
+
+            musicInteractionLock = true;
+
+            // 取消静音（首次点击时生效）
             bgMusic.muted = false;
 
-            // 第二步：切换播放/暂停状态
             if (bgMusic.paused) {
                 bgMusic.play().then(() => {
                     musicBtn.classList.add('playing');
                     musicBtn.classList.remove('paused');
-                    console.log("✅ 音乐播放成功");
                 }).catch(err => {
-                    console.log("⚠️ 播放失败，需手动点击图标播放");
+                    console.log("⚠️ 自动播放被阻止，请手动点击播放");
                 });
             } else {
                 bgMusic.pause();
                 musicBtn.classList.remove('playing');
                 musicBtn.classList.add('paused');
-                console.log("✅ 音乐已暂停");
             }
+
+            // 冷却时间后解锁
+            setTimeout(() => {
+                musicInteractionLock = false;
+            }, MUSIC_COOLDOWN);
         }
 
-        // 监听全局点击（电脑端）：任意位置点击切换播放/暂停
-        document.addEventListener('click', toggleMusic);
-        // 监听全局触摸（手机端）：任意位置触摸切换播放/暂停
-        document.addEventListener('touchstart', toggleMusic);
+        // 音乐按钮事件
+        musicBtn.addEventListener('click', toggleMusic);
+        musicBtn.addEventListener('touchstart', toggleMusic);
 
-        // 保留音乐图标点击（避免重复触发，加阻止冒泡）
-        musicBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // 阻止事件冒泡，避免触发全局点击
-            toggleMusic();
-        });
-
-        // 音频状态同步（防止状态不一致）
+        // 音频状态同步
         bgMusic.addEventListener('play', () => {
             musicBtn.classList.add('playing');
             musicBtn.classList.remove('paused');
         });
+
         bgMusic.addEventListener('pause', () => {
             musicBtn.classList.remove('playing');
             musicBtn.classList.add('paused');
         });
 
-        // ========== 3. 自动下滑逻辑（保持不变） ==========
-        function autoScrollDown() {
-            container.scrollTo({
-                top: container.scrollTop + scrollStep,
-                behavior: 'smooth'
-            });
-            if (container.scrollTop + container.clientHeight >= container.scrollHeight - 100) {
-                clearInterval(autoScrollTimer);
+        // ========== 3. 婚贝风格自动滑动逻辑 ==========
+        function autoScroll() {
+            if (!autoScrollActive || isUserInteracting) {
+                animationFrameId = null;
                 return;
+            }
+
+            // 判断是否到达底部
+            const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 10;
+
+            if (isAtBottom) {
+                // 到达底部，平滑滚动回顶部
+                container.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+
+                // 暂停3秒后重新开始
+                autoScrollActive = false;
+                setTimeout(() => {
+                    autoScrollActive = true;
+                    if (!isUserInteracting) {
+                        startAutoScroll();
+                    }
+                }, 3000);
+                return;
+            }
+
+            // 正常滚动
+            container.scrollBy({
+                top: scrollSpeed / 60, // 转换为每帧滚动的像素（60fps）
+                behavior: 'instant'
+            });
+
+            // 继续下一帧
+            animationFrameId = requestAnimationFrame(autoScroll);
+        }
+
+        function startAutoScroll() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            animationFrameId = requestAnimationFrame(autoScroll);
+        }
+
+        function stopAutoScroll() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
             }
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                autoScrollTimer = setInterval(autoScrollDown, scrollInterval);
-            }, 1000);
+        // ========== 4. 用户交互检测 ==========
+        function handleUserInteractionStart() {
+            isUserInteracting = true;
+            stopAutoScroll();
+
+            // 清除之前的恢复计时器
+            if (resumeTimer) {
+                clearTimeout(resumeTimer);
+            }
+        }
+
+        function handleUserInteractionEnd() {
+            // 设置恢复计时器
+            if (resumeTimer) {
+                clearTimeout(resumeTimer);
+            }
+
+            resumeTimer = setTimeout(() => {
+                isUserInteracting = false;
+                if (autoScrollActive) {
+                    startAutoScroll();
+                }
+            }, SCROLL_RESUME_DELAY);
+        }
+
+        // 事件监听（优化版）
+        container.addEventListener('touchstart', handleUserInteractionStart);
+        container.addEventListener('touchend', handleUserInteractionEnd);
+        container.addEventListener('touchcancel', handleUserInteractionEnd);
+
+        container.addEventListener('mousedown', handleUserInteractionStart);
+        container.addEventListener('mouseup', handleUserInteractionEnd);
+
+        container.addEventListener('wheel', (e) => {
+            handleUserInteractionStart();
+            handleUserInteractionEnd(); // 立即尝试恢复
         });
 
-        // 用户手动操作停止自动下滑
-        document.addEventListener('touchstart', () => clearInterval(autoScrollTimer));
-        container.addEventListener('scroll', () => clearInterval(autoScrollTimer));
-        container.addEventListener('mousedown', () => clearInterval(autoScrollTimer));
+        container.addEventListener('scroll', () => {
+            // 只在用户主动滚动时暂停
+            if (!isUserInteracting) {
+                handleUserInteractionStart();
+                handleUserInteractionEnd();
+            }
+        });
 
-        // ========== 4. 倒计时逻辑（保持不变） ==========
+        // ========== 5. 页面初始化 ==========
+        window.addEventListener('load', () => {
+            // 初始化音乐按钮状态
+            if (!bgMusic.paused) {
+                musicBtn.classList.add('playing');
+                musicBtn.classList.remove('paused');
+            }
+
+            // 延迟2秒开始自动滑动
+            setTimeout(() => {
+                autoScrollActive = true;
+                startAutoScroll();
+            }, 2000);
+        });
+
+        // ========== 6. 倒计时逻辑 ==========
         const weddingTime = new Date("2026-02-13 13:14:00").getTime();
         const daysEl = document.getElementById('days');
         const hoursEl = document.getElementById('hours');
@@ -340,6 +448,15 @@
         function updateCountdown() {
             const now = new Date().getTime();
             const diff = weddingTime - now;
+
+            if (diff <= 0) {
+                daysEl.innerText = "00";
+                hoursEl.innerText = "00";
+                minutesEl.innerText = "00";
+                secondsEl.innerText = "00";
+                return;
+            }
+
             const days = Math.floor(diff / 86400000);
             const hours = Math.floor((diff % 86400000) / 3600000);
             const minutes = Math.floor((diff % 3600000) / 60000);
@@ -350,6 +467,7 @@
             minutesEl.innerText = minutes.toString().padStart(2, '0');
             secondsEl.innerText = seconds.toString().padStart(2, '0');
         }
+
         updateCountdown();
         setInterval(updateCountdown, 1000);
     </script>

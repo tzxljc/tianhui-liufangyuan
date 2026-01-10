@@ -28,6 +28,11 @@ body {
     position: relative;
     overflow-y: auto;
     overflow-x: hidden;
+
+    scroll-behavior: smooth;
+    /* 添加平滑滚动 */
+    -webkit-overflow-scrolling: touch;
+    /* iOS平滑滚动 */
 }
 
 #header {
@@ -137,6 +142,59 @@ body {
 
 .name {
     margin-left: 60px;
+}
+
+.art-photo-module {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin: 50px auto;
+    aspect-ratio: 9/10;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.art-text {
+    font-family: 'Parisienne', cursive;
+    color: #7a1939;
+    margin: 0;
+    line-height: 1;
+    z-index: 4;
+    position: absolute;
+}
+
+.art-text-yes {
+    left: 5%;
+    top: 15%;
+    font-size: 70px;
+}
+
+.art-text-ido {
+    left: 15%;
+    top: 35%;
+    font-size: 70px;
+}
+
+.module-photo-right {
+    position: absolute;
+    right: 5px;
+    top: 0;
+    width: 55%;
+    height: 65%;
+    object-fit: cover;
+    z-index: 1;
+    border-radius: 15px;
+}
+
+.module-photo-left {
+    position: absolute;
+    left: 5px;
+    bottom: 0;
+    width: 55%;
+    height: 40%;
+    object-fit: cover;
+    z-index: 2;
+    border-radius: 15px;
 }
 
 .split-layout1,
