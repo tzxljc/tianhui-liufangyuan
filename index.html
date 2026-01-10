@@ -262,7 +262,7 @@
 
     </div>
 
-    <audio id="bg-music" autoplay loop muted preload="auto" src="刘人语 - 心跳的证明.mp3">
+    <audio id="bg-music" autoplay loop preload="auto" src="刘人语 - 心跳的证明.mp3">
         <source src="刘人语 - 心跳的证明.mp3" type="audio/mp3">
     </audio>
 
@@ -273,172 +273,186 @@
         const container = document.querySelector('.container');
 
         // 自动下滑配置
-        const scrollSpeed = 15; // 调慢一点，更接近婚贝效果
-        const SCROLL_RESUME_DELAY = 3000; // 用户停止操作后3秒恢复
+        const scrollSpeed = 20; // 稍微加快一点
         let autoScrollActive = true;
         let isUserInteracting = false;
-        let resumeTimer = null;
-        let animationFrameId = null;
-        let musicInteractionLock = false;
-        const MUSIC_COOLDOWN = 800; // 0.8秒冷却
+        let interactionTimer = null;
+        let scrollInterval = null;
+        let lastScrollTime = 0;
 
-        // ========== 2. 音乐控制逻辑 ==========
-        function toggleMusic() {
-            if (musicInteractionLock) return;
-
-            musicInteractionLock = true;
-
-            // 取消静音（首次点击时生效）
-            bgMusic.muted = false;
-
-            if (bgMusic.paused) {
+        // ========== 2. 音乐控制逻辑（优化版） ==========
+        function initMusic() {
+            // iOS Safari需要用户交互才能播放音频
+            const playMusic = () => {
+                bgMusic.muted = false;
                 bgMusic.play().then(() => {
                     musicBtn.classList.add('playing');
                     musicBtn.classList.remove('paused');
+                    console.log("音乐开始播放");
                 }).catch(err => {
-                    console.log("⚠️ 自动播放被阻止，请手动点击播放");
+                    console.log("音乐播放被阻止，需要用户交互");
+                    // 显示提示让用户点击
+                    musicBtn.style.animation = 'pulse 1s infinite';
                 });
-            } else {
-                bgMusic.pause();
+            };
+
+            // 点击音乐按钮时播放
+            musicBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (bgMusic.paused) {
+                    playMusic();
+                } else {
+                    bgMusic.pause();
+                    musicBtn.classList.remove('playing');
+                    musicBtn.classList.add('paused');
+                }
+            });
+
+            musicBtn.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                if (bgMusic.paused) {
+                    playMusic();
+                } else {
+                    bgMusic.pause();
+                    musicBtn.classList.remove('playing');
+                    musicBtn.classList.add('paused');
+                }
+            });
+
+            // 音频状态同步
+            bgMusic.addEventListener('play', () => {
+                musicBtn.classList.add('playing');
+                musicBtn.classList.remove('paused');
+                musicBtn.style.animation = 'none';
+            });
+
+            bgMusic.addEventListener('pause', () => {
                 musicBtn.classList.remove('playing');
                 musicBtn.classList.add('paused');
-            }
-
-            // 冷却时间后解锁
-            setTimeout(() => {
-                musicInteractionLock = false;
-            }, MUSIC_COOLDOWN);
+            });
         }
 
-        // 音乐按钮事件
-        musicBtn.addEventListener('click', toggleMusic);
-        musicBtn.addEventListener('touchstart', toggleMusic);
+        // ========== 3. 手机端优化的自动滑动逻辑 ==========
+        function initAutoScroll() {
+            // 使用setInterval替代requestAnimationFrame（更稳定）
+            function startAutoScroll() {
+                if (scrollInterval) {
+                    clearInterval(scrollInterval);
+                }
 
-        // 音频状态同步
-        bgMusic.addEventListener('play', () => {
-            musicBtn.classList.add('playing');
-            musicBtn.classList.remove('paused');
-        });
+                scrollInterval = setInterval(() => {
+                    if (!autoScrollActive || isUserInteracting) {
+                        return;
+                    }
 
-        bgMusic.addEventListener('pause', () => {
-            musicBtn.classList.remove('playing');
-            musicBtn.classList.add('paused');
-        });
+                    const currentTime = Date.now();
+                    const deltaTime = Math.min(currentTime - lastScrollTime, 100); // 限制最大间隔
+                    lastScrollTime = currentTime;
 
-        // ========== 3. 婚贝风格自动滑动逻辑 ==========
-        function autoScroll() {
-            if (!autoScrollActive || isUserInteracting) {
-                animationFrameId = null;
-                return;
+                    // 计算滚动的像素
+                    const pixelsToScroll = (scrollSpeed * deltaTime) / 1000;
+
+                    // 判断是否到达底部
+                    const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 20;
+
+                    if (isAtBottom) {
+                        // 到达底部，回到顶部
+                        container.scrollTo({
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                        return;
+                    }
+
+                    // 正常滚动
+                    container.scrollBy({
+                        top: pixelsToScroll,
+                        behavior: 'instant'
+                    });
+                }, 16); // 约60fps
             }
 
-            // 判断是否到达底部
-            const isAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 10;
+            // 停止自动滚动
+            function stopAutoScroll() {
+                if (scrollInterval) {
+                    clearInterval(scrollInterval);
+                    scrollInterval = null;
+                }
+            }
 
-            if (isAtBottom) {
-                // 到达底部，平滑滚动回顶部
-                container.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
+            // 用户交互处理
+            function handleUserInteraction() {
+                isUserInteracting = true;
+                stopAutoScroll();
 
-                // 暂停3秒后重新开始
-                autoScrollActive = false;
-                setTimeout(() => {
-                    autoScrollActive = true;
-                    if (!isUserInteracting) {
+                if (interactionTimer) {
+                    clearTimeout(interactionTimer);
+                }
+
+                // 用户停止操作3秒后恢复自动滑动
+                interactionTimer = setTimeout(() => {
+                    isUserInteracting = false;
+                    if (autoScrollActive) {
+                        lastScrollTime = Date.now();
                         startAutoScroll();
                     }
                 }, 3000);
-                return;
             }
 
-            // 正常滚动
-            container.scrollBy({
-                top: scrollSpeed / 60, // 转换为每帧滚动的像素（60fps）
-                behavior: 'instant'
+            // 事件监听（简化版）
+            let touchStartY = 0;
+            let touchEndY = 0;
+
+            container.addEventListener('touchstart', (e) => {
+                touchStartY = e.touches[0].clientY;
+                handleUserInteraction();
+            }, { passive: true });
+
+            container.addEventListener('touchmove', (e) => {
+                touchEndY = e.touches[0].clientY;
+                const deltaY = touchEndY - touchStartY;
+
+                // 只有在用户明显滑动时才暂停
+                if (Math.abs(deltaY) > 5) {
+                    handleUserInteraction();
+                }
+            }, { passive: true });
+
+            container.addEventListener('touchend', () => {
+                handleUserInteraction();
+            }, { passive: true });
+
+            // 鼠标滚轮事件
+            container.addEventListener('wheel', handleUserInteraction, { passive: true });
+
+            // 开始自动滚动
+            function startScrolling() {
+                autoScrollActive = true;
+                lastScrollTime = Date.now();
+                startAutoScroll();
+            }
+
+            // 页面加载后延迟开始
+            window.addEventListener('load', () => {
+                // 确保内容加载完成
+                setTimeout(startScrolling, 1000);
             });
 
-            // 继续下一帧
-            animationFrameId = requestAnimationFrame(autoScroll);
-        }
-
-        function startAutoScroll() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
-            animationFrameId = requestAnimationFrame(autoScroll);
-        }
-
-        function stopAutoScroll() {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-        }
-
-        // ========== 4. 用户交互检测 ==========
-        function handleUserInteractionStart() {
-            isUserInteracting = true;
-            stopAutoScroll();
-
-            // 清除之前的恢复计时器
-            if (resumeTimer) {
-                clearTimeout(resumeTimer);
-            }
-        }
-
-        function handleUserInteractionEnd() {
-            // 设置恢复计时器
-            if (resumeTimer) {
-                clearTimeout(resumeTimer);
-            }
-
-            resumeTimer = setTimeout(() => {
-                isUserInteracting = false;
-                if (autoScrollActive) {
-                    startAutoScroll();
+            // 页面可见性变化处理
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    // 页面隐藏时暂停
+                    stopAutoScroll();
+                } else {
+                    // 页面恢复时继续
+                    if (autoScrollActive && !isUserInteracting) {
+                        setTimeout(startScrolling, 500);
+                    }
                 }
-            }, SCROLL_RESUME_DELAY);
+            });
         }
 
-        // 事件监听（优化版）
-        container.addEventListener('touchstart', handleUserInteractionStart);
-        container.addEventListener('touchend', handleUserInteractionEnd);
-        container.addEventListener('touchcancel', handleUserInteractionEnd);
-
-        container.addEventListener('mousedown', handleUserInteractionStart);
-        container.addEventListener('mouseup', handleUserInteractionEnd);
-
-        container.addEventListener('wheel', (e) => {
-            handleUserInteractionStart();
-            handleUserInteractionEnd(); // 立即尝试恢复
-        });
-
-        container.addEventListener('scroll', () => {
-            // 只在用户主动滚动时暂停
-            if (!isUserInteracting) {
-                handleUserInteractionStart();
-                handleUserInteractionEnd();
-            }
-        });
-
-        // ========== 5. 页面初始化 ==========
-        window.addEventListener('load', () => {
-            // 初始化音乐按钮状态
-            if (!bgMusic.paused) {
-                musicBtn.classList.add('playing');
-                musicBtn.classList.remove('paused');
-            }
-
-            // 延迟2秒开始自动滑动
-            setTimeout(() => {
-                autoScrollActive = true;
-                startAutoScroll();
-            }, 2000);
-        });
-
-        // ========== 6. 倒计时逻辑 ==========
+        // ========== 4. 倒计时逻辑 ==========
         const weddingTime = new Date("2026-02-13 13:14:00").getTime();
         const daysEl = document.getElementById('days');
         const hoursEl = document.getElementById('hours');
@@ -470,6 +484,30 @@
 
         updateCountdown();
         setInterval(updateCountdown, 1000);
+
+        // ========== 5. 初始化所有功能 ==========
+        function initAll() {
+            initMusic();
+            initAutoScroll();
+
+            // 添加一个简单的CSS动画提示
+            const style = document.createElement('style');
+            style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+        `;
+            document.head.appendChild(style);
+        }
+
+        // DOM加载完成后初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAll);
+        } else {
+            initAll();
+        }
     </script>
 </body>
 

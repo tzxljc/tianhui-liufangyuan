@@ -434,3 +434,71 @@ body {
     box-sizing: border-box;
     border-radius: 15px;
 }
+
+/* 添加媒体查询，优化手机端体验 */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px 15px 0 15px;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+
+    #header {
+        width: calc(100% + 30px);
+        margin: -15px -15px 20px -15px;
+        padding: 15px;
+    }
+
+    .art-photo-module {
+        margin: 30px auto;
+    }
+
+    .split-layout1,
+    .split-layout2 {
+        flex-direction: column;
+        width: 100%;
+        gap: 20px;
+    }
+
+    .split-text1,
+    .split-text2 {
+        width: 100%;
+        text-align: center !important;
+    }
+
+    .split-img1,
+    .split-img2 {
+        width: 100%;
+        max-width: 300px;
+        height: 250px;
+    }
+
+    .countdown-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .countdown-nums {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .countdown-item {
+        width: 70px;
+        height: 70px;
+    }
+
+    #wedding-photo_wrap,
+    #ending {
+        width: calc(100% + 30px);
+        margin: 0 -15px;
+        min-height: 500px;
+    }
+}
+
+/* 强制开启GPU加速，提高滑动性能 */
+.container {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
