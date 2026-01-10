@@ -204,34 +204,42 @@ body {
 .split-layout1,
 .split-layout2 {
     display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    width: 100%;
-    max-width: 560px;
+    align-items: center;
+    /* 改为居中对齐，使图片和文字在垂直方向居中 */
+    gap: 40px;
+    /* 进一步增加间距到40px */
+    width: 95%;
+    /* 几乎占满宽度 */
+    max-width: 580px;
+    /* 接近container的最大宽度600px */
     margin: 20px auto;
-    padding: 0;
+    padding: 0 20px;
+    /* 增加内边距 */
     flex-wrap: nowrap !important;
     justify-content: space-between;
+    /* 两端对齐充分利用空间 */
+    box-sizing: border-box;
 }
 
 .split-text1,
 .split-text2 {
-    flex: 1;
-    font-size: 14px;
-    flex-shrink: 0;
-    padding-right: 10px;
+    flex: 1.8;
+    /* 增加文字区域占比 */
     min-width: 0;
-    /* 重要！防止文字溢出 */
-    word-break: break-word;
-    line-height: 1.8;
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 0 15px;
+    /* 进一步增加内边距 */
 }
 
-.split-layout1 .split-text1,
-.split-layout2 .split-text2 {
-    padding: 0 10px;
-    /* 减少内边距 */
-    margin: 0;
-    /* 移除外边距 */
+.split-img1,
+.split-img2 {
+    flex: 0 0 210px;
+    /* 增加到210px */
+    width: 210px;
+    height: 315px;
+    /* 2:3比例，210*1.5=315 */
+    overflow: hidden;
 }
 
 .split-text1 {
@@ -245,16 +253,6 @@ body {
 .split-text1 p,
 .split-text2 p {
     margin-bottom: 8px;
-}
-
-.split-img1,
-.split-img2 {
-    flex: 0 0 200px;
-    /* 使用flex固定宽度 */
-    width: 200px;
-    height: 300px;
-    overflow: hidden;
-    flex-shrink: 0;
 }
 
 .split-img1 img,
@@ -479,35 +477,26 @@ body {
         aspect-ratio: 9/10;
     }
 
-    /* 保持左右布局，只缩小内容 */
     .split-layout1,
     .split-layout2 {
-        max-width: 100%;
-        flex-direction: row;
-        /* 保持水平布局 */
-        gap: 6px;
-        /* 稍微缩小间距 */
-        padding: 0;
+        gap: 10px;
         margin: 15px auto;
-    }
-
-    /* 按比例缩小图片 */
-    .split-img1,
-    .split-img2 {
-        flex: 0 0 130px;
-        /* 缩小图片宽度 */
-        width: 130px;
-        height: 195px;
-        /* 等比例缩小高度 (300 * 130/200 = 195) */
+        padding: 0 5px;
+        /* 手机端也添加内边距 */
     }
 
     .split-text1,
     .split-text2 {
-        font-size: 12px;
-        /* 缩小文字 */
-        padding-right: 5px;
-        line-height: 1.6;
-        /* 稍微缩小行高 */
+        flex: 3;
+        /* 保持比例 */
+        padding: 0 8px;
+    }
+
+    .split-img1,
+    .split-img2 {
+        flex: 2;
+        /* 保持比例 */
+        max-width: 150px;
     }
 
     .split-slogan1,
@@ -551,22 +540,36 @@ body {
 
     /* 倒计时模块调整 */
     .countdown-container {
+        /* 保持原有布局，只按比例缩小尺寸 */
         gap: 15px;
+        /* 稍微缩小间距 */
+        margin: 20px auto;
+        padding: 0 10px;
+    }
+
+    .countdown-nums {
+        gap: 8px;
+        /* 缩小数字之间的间距 */
     }
 
     .countdown-item {
-        width: 65px;
-        height: 65px;
+        width: 70px;
+        /* 按比例缩小 */
+        height: 70px;
     }
 
-    .countdown-item span,
+    .countdown-item span {
+        font-size: 14px;
+    }
+
     .countdown-item p {
         font-size: 12px;
     }
 
     .countdown-img {
-        max-width: 250px;
-        max-height: 320px;
+        max-width: 280px;
+        /* 按比例缩小 */
+        max-height: 370px;
     }
 
     /* 地址模块保持两列，但缩小 */
@@ -661,14 +664,27 @@ body {
         height: 150px;
     }
 
+    .countdown-container {
+        gap: 12px;
+        padding: 0 8px;
+    }
+
     .countdown-item {
-        width: 55px;
-        height: 55px;
+        width: 60px;
+        height: 60px;
+    }
+
+    .countdown-item span {
+        font-size: 12px;
+    }
+
+    .countdown-item p {
+        font-size: 11px;
     }
 
     .countdown-img {
-        max-width: 200px;
-        max-height: 280px;
+        max-width: 240px;
+        max-height: 320px;
     }
 }
 
@@ -720,13 +736,22 @@ body {
         font-size: 20px;
     }
 
-    .countdown-item {
-        width: 50px;
-        height: 50px;
+    .countdown-container {
+        gap: 10px;
+        padding: 0 6px;
     }
 
-    .countdown-item span,
-    .countdown-item p {
+    .countdown-item {
+        width: 55px;
+        height: 55px;
+    }
+
+    .countdown-item span {
         font-size: 11px;
+    }
+
+    .countdown-img {
+        max-width: 200px;
+        max-height: 270px;
     }
 }
