@@ -273,8 +273,6 @@
         const bgMusic = document.getElementById('bg-music');
         const musicBtn = document.getElementById('musicBtn');
         const container = document.querySelector('.container');
-        const startMask = document.getElementById('start-mask');
-        const startButton = document.getElementById('start-button');
 
         // 自动滚动配置
         let autoScrollActive = false;
@@ -282,64 +280,10 @@
         let scrollInterval = null;
         let resumeTimer = null;
         let musicPlayed = false;
-        let pageStarted = false;
 
-        // ========== 2. 通用兼容性检测 ==========
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isAndroid = /Android/.test(navigator.userAgent);
-        const isWechat = /MicroMessenger/.test(navigator.userAgent);
-        const isQQ = /QQ/.test(navigator.userAgent);
-
-        console.log('浏览器信息:', {
-            userAgent: navigator.userAgent,
-            isIOS,
-            isAndroid,
-            isWechat,
-            isQQ
-        });
-
-        // ========== 3. 启动页面 ==========
-        function startPage() {
-            if (pageStarted) return;
-            pageStarted = true;
-
-            // 隐藏启动遮罩层
-            startMask.style.opacity = '0';
-            setTimeout(() => {
-                startMask.style.display = 'none';
-            }, 300);
-
-            // 尝试播放音乐（所有浏览器都需要用户交互）
-            try {
-                bgMusic.muted = false;
-                const playPromise = bgMusic.play();
-
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        console.log('音乐自动播放成功');
-                        musicPlayed = true;
-                        musicBtn.classList.add('playing');
-                        musicBtn.classList.remove('paused');
-                    }).catch(error => {
-                        console.log('音乐自动播放被阻止:', error);
-                        // 显示提示，让用户手动点击播放
-                        musicBtn.style.border = '2px solid #ff69b4';
-                        musicBtn.style.animation = 'pulse 1s infinite';
-                    });
-                }
-            } catch (error) {
-                console.log('音乐播放出错:', error);
-            }
-
-            // 开始自动滚动
-            setTimeout(() => {
-                startAutoScroll();
-            }, 1000);
-        }
-
-        // ========== 4. 音乐控制（兼容所有浏览器） ==========
+        // ========== 2. 音乐控制 ==========
         function setupMusic() {
-            // 点击音乐按钮
+            // 点击音乐按钮切换播放/暂停
             musicBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
                 toggleMusic();
@@ -351,16 +295,19 @@
             });
 
             function toggleMusic() {
+                // 首次点击时取消静音
+                bgMusic.muted = false;
+
                 if (bgMusic.paused) {
-                    // 先取消静音，再播放
-                    bgMusic.muted = false;
                     bgMusic.play().then(() => {
                         musicBtn.classList.add('playing');
                         musicBtn.classList.remove('paused');
-                        musicBtn.style.border = 'none';
-                        musicBtn.style.animation = 'none';
+                        musicPlayed = true;
                     }).catch(err => {
-                        console.log('手动播放失败:', err);
+                        console.log('音乐播放失败:', err);
+                        // 显示提示
+                        musicBtn.style.border = '2px solid #ff69b4';
+                        musicBtn.title = '点击播放音乐';
                     });
                 } else {
                     bgMusic.pause();
@@ -374,6 +321,7 @@
                 musicBtn.classList.add('playing');
                 musicBtn.classList.remove('paused');
                 musicPlayed = true;
+                musicBtn.style.border = 'none';
             });
 
             bgMusic.addEventListener('pause', () => {
@@ -382,14 +330,14 @@
             });
 
             // 处理音频加载错误
-            bgMusic.addEventListener('error', (e) => {
-                console.log('音频加载错误:', e);
+            bgMusic.addEventListener('error', () => {
+                console.log('音频加载错误');
                 musicBtn.innerHTML = '❌';
                 musicBtn.title = '音乐加载失败';
             });
         }
 
-        // ========== 5. 自动滚动（兼容所有浏览器） ==========
+        // ========== 3. 自动滚动 ==========
         function setupAutoScroll() {
             const SCROLL_SPEED = 15; // 像素/秒
 
@@ -399,7 +347,6 @@
 
                 let lastTime = Date.now();
 
-                // 使用requestAnimationFrame优先，setInterval备选
                 function scrollFrame() {
                     if (!autoScrollActive || isUserInteracting) {
                         if (scrollInterval) {
@@ -419,58 +366,71 @@
                     // 判断是否到达底部
                     const scrollRemaining = container.scrollHeight - container.clientHeight - container.scrollTop;
 
-                    if (scrollRemaining <= 10) { // 到达底部，回到顶部 container.scrollTo({ top: 0, behavior: 'smooth' }); return; } // 正常滚动
-                        container.scrollTop += pixelsToScroll;
-                    } // 优先使用requestAnimationFrame if ('requestAnimationFrame' in window) {
+                    if (scrollRemaining <= 10) {
+                        // 到达底部，回到顶部
+                        container.scrollTo({
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                        return;
+                    }
+
+                    // 正常滚动
+                    container.scrollTop += pixelsToScroll;
+                }
+
+                // 优先使用requestAnimationFrame
+                if ('requestAnimationFrame' in window) {
                     function animateScroll() {
-                        scrollFrame(); if (autoScrollActive && !isUserInteracting) {
+                        scrollFrame();
+                        if (autoScrollActive && !isUserInteracting) {
                             requestAnimationFrame(animateScroll);
                         }
-                    } requestAnimationFrame(animateScroll);
-                } else { // 降级到setInterval
+                    }
+                    requestAnimationFrame(animateScroll);
+                } else {
+                    // 降级到setInterval
                     scrollInterval = setInterval(scrollFrame, 16);
                 }
-            } function stopAutoScroll() {
-                autoScrollActive = false; if
-                    (scrollInterval) { clearInterval(scrollInterval); scrollInterval = null; }
-            } function handleUserInteraction() {
-                isUserInteracting = true; stopAutoScroll(); // 清除之前的恢复计时器 if (resumeTimer) { clearTimeout(resumeTimer); } //
-        用户停止操作3秒后恢复 resumeTimer = setTimeout(() => {
+            }
+
+            function stopAutoScroll() {
+                autoScrollActive = false;
+                if (scrollInterval) {
+                    clearInterval(scrollInterval);
+                    scrollInterval = null;
+                }
+            }
+
+            function handleUserInteraction() {
+                isUserInteracting = true;
+                stopAutoScroll();
+
+                // 清除之前的恢复计时器
+                if (resumeTimer) {
+                    clearTimeout(resumeTimer);
+                }
+
+                // 用户停止操作3秒后恢复
+                resumeTimer = setTimeout(() => {
                     isUserInteracting = false;
-                    if (pageStarted) {
-                        startAutoScroll();
-                    }
+                    startAutoScroll();
                 }, 3000);
             }
 
-            // 简单的触摸/鼠标事件监听
-            let touchStartTime = 0;
-
-            container.addEventListener('touchstart', (e) => {
-                touchStartTime = Date.now();
+            // 事件监听
+            container.addEventListener('touchstart', () => {
                 handleUserInteraction();
             }, { passive: true });
 
             container.addEventListener('touchend', () => {
-                // 短暂触摸不暂停太久
-                if (Date.now() - touchStartTime < 300) {
-                    setTimeout(() => {
-                        isUserInteracting = false;
-                        if (pageStarted && !autoScrollActive) {
-                            startAutoScroll();
-                        }
-                    }, 100);
-                } else {
-                    handleUserInteraction();
-                }
+                handleUserInteraction();
             }, { passive: true });
 
             container.addEventListener('touchmove', handleUserInteraction, { passive: true });
             container.addEventListener('wheel', handleUserInteraction, { passive: true });
             container.addEventListener('mousedown', handleUserInteraction);
             container.addEventListener('mousemove', handleUserInteraction);
-
-            // 监听滚动事件
             container.addEventListener('scroll', () => {
                 if (!isUserInteracting) {
                     handleUserInteraction();
@@ -483,7 +443,7 @@
             };
         }
 
-        // ========== 6. 倒计时逻辑 ==========
+        // ========== 4. 倒计时逻辑 ==========
         function setupCountdown() {
             const weddingTime = new Date("2026-02-13 13:14:00").getTime();
             const daysEl = document.getElementById('days');
@@ -496,62 +456,76 @@
                 const diff = weddingTime - now;
 
                 if (diff <= 0) {
-                    daysEl.innerText = "00"; hoursEl.innerText = "00"; minutesEl.innerText = "00";
-                    secondsEl.innerText = "00"; return;
-                } const days = Math.floor(diff / 86400000); const
-                    hours = Math.floor((diff % 86400000) / 3600000); const minutes = Math.floor((diff % 3600000) / 60000); const
-                        seconds = Math.floor((diff % 60000) / 1000); daysEl.innerText = days.toString().padStart(2, '0');
+                    daysEl.innerText = "00";
+                    hoursEl.innerText = "00";
+                    minutesEl.innerText = "00";
+                    secondsEl.innerText = "00";
+                    return;
+                }
+
+                const days = Math.floor(diff / 86400000);
+                const hours = Math.floor((diff % 86400000) / 3600000);
+                const minutes = Math.floor((diff % 3600000) / 60000);
+                const seconds = Math.floor((diff % 60000) / 1000);
+
+                daysEl.innerText = days.toString().padStart(2, '0');
                 hoursEl.innerText = hours.toString().padStart(2, '0');
                 minutesEl.innerText = minutes.toString().padStart(2, '0');
                 secondsEl.innerText = seconds.toString().padStart(2, '0');
-            } updateCountdown();
+            }
+
+            updateCountdown();
             setInterval(updateCountdown, 1000);
-        } //==========7. 页面可见性处理==========function setupVisibilityHandler()
-        { // 页面可见性API let hidden, visibilityChange; if (typeof document.hidden !=="undefined" ) {
-            hidden = "hidden"; visibilityChange = "visibilitychange";
-        } else if (typeof document.msHidden
-            !== "undefined") { hidden = "msHidden"; visibilityChange = "msvisibilitychange"; } else if (typeof
-                document.webkitHidden !== "undefined") {
-            hidden = "webkitHidden";
-            visibilityChange = "webkitvisibilitychange";
-        } function handleVisibilityChange() {
-            if (document[hidden]) { // 页面隐藏，暂停音乐和滚动 if (!bgMusic.paused) { bgMusic.pause(); } autoScrollActive=false; } else { //
-                页面显示，恢复音乐和滚动 if (musicPlayed && bgMusic.paused) {
-                    bgMusic.play().catch(() => {
-                        // 自动播放可能被阻止
-                    });
+        }
+
+        // ========== 5. 页面可见性处理 ==========
+        function setupVisibilityHandler() {
+            let hidden, visibilityChange;
+            if (typeof document.hidden !== "undefined") {
+                hidden = "hidden";
+                visibilityChange = "visibilitychange";
+            } else if (typeof document.msHidden !== "undefined") {
+                hidden = "msHidden";
+                visibilityChange = "msvisibilitychange";
+            } else if (typeof document.webkitHidden !== "undefined") {
+                hidden = "webkitHidden";
+                visibilityChange = "webkitvisibilitychange";
+            }
+
+            function handleVisibilityChange() {
+                if (document[hidden]) {
+                    // 页面隐藏，暂停音乐和滚动
+                    if (!bgMusic.paused) {
+                        bgMusic.pause();
+                    }
+                    autoScrollActive = false;
+                } else {
+                    // 页面显示，尝试恢复
+                    if (musicPlayed && bgMusic.paused) {
+                        bgMusic.play().catch(() => {
+                            // 自动播放可能被阻止
+                        });
+                    }
+                    if (!isUserInteracting) {
+                        setTimeout(() => {
+                            startAutoScroll();
+                        }, 1000);
+                    }
                 }
-                if (pageStarted && !isUserInteracting) {
-                    setTimeout(() => {
-                        startAutoScroll();
-                    }, 1000);
-                }
+            }
+
+            if (typeof document.addEventListener !== "undefined" && hidden !== undefined) {
+                document.addEventListener(visibilityChange, handleVisibilityChange, false);
             }
         }
 
-        if (typeof document.addEventListener !== "undefined" && hidden !== undefined) {
-            document.addEventListener(visibilityChange, handleVisibilityChange, false);
-        }
-                }
-
-        // ========== 8. 初始化所有功能 ==========
+        // ========== 6. 初始化所有功能 ==========
         function initAll() {
-            // 设置启动按钮事件
-            startButton.addEventListener('click', startPage);
-            startMask.addEventListener('touchstart', startPage);
-
-            // 允许整个页面点击启动（提高成功率）
-            document.addEventListener('click', function (e) {
-                if (!pageStarted && e.target !== startButton) {
-                    startPage();
-                }
-            }, { once: true });
-
             // 设置音乐控制
             setupMusic();
 
             // 设置自动滚动
-            window.startAutoScroll = setupAutoScroll().start;
+            const autoScroll = setupAutoScroll();
 
             // 设置倒计时
             setupCountdown();
@@ -562,43 +536,45 @@
             // 添加CSS动画
             const style = document.createElement('style');
             style.textContent = `
-                @keyframes pulse {
-                0% { transform: scale(1); opacity: 1; }
-                50% { transform: scale(1.05); opacity: 0.8; }
-                100% { transform: scale(1); opacity: 1; }
-                }
-
-                @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
-                }
-
-                #start-mask {
-                animation: fadeIn 0.5s ease-out;
-                }
+                    @keyframes pulse {
+                        0% { transform: scale(1); opacity: 1; }
+                        50% { transform: scale(1.05); opacity: 0.8; }
+                        100% { transform: scale(1); opacity: 1; }
+                    }
                 `;
             document.head.appendChild(style);
 
-            // 如果是微信浏览器，显示额外提示
-            if (isWechat) {
+            // 页面加载完成后开始自动滚动
+            window.addEventListener('load', () => {
+                // 尝试播放音乐（可能会被浏览器阻止）
+                try {
+                    bgMusic.muted = false;
+                    bgMusic.play().then(() => {
+                        musicPlayed = true;
+                        musicBtn.classList.add('playing');
+                        musicBtn.classList.remove('paused');
+                    }).catch(() => {
+                        // 自动播放被阻止，显示提示
+                        musicBtn.style.border = '2px solid #ff69b4';
+                        musicBtn.title = '点击播放音乐';
+                    });
+                } catch (error) {
+                    console.log('自动播放失败:', error);
+                }
+
+                // 延迟1秒后开始自动滚动
                 setTimeout(() => {
-                    if (!pageStarted) {
-                        const wechatTip = document.createElement('div');
-                        wechatTip.innerHTML = '<p style="color:#666; font-size:12px; margin-top:10px;">
-                        如自动播放失效，请点击右上角"..." < br > 选择"在浏览器中打开"获得更好体验</p > ';
-                        startMask.appendChild(wechatTip);
-                    }
-                }, 3000);
-            }
+                    autoScroll.start();
+                }, 1000);
+            });
         }
 
-        // ========== 9. 页面加载完成后初始化 ==========
+        // ========== 7. 页面加载完成后初始化 ==========
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initAll);
         } else {
             initAll();
         }
     </script>
-</body>
 
 </html>

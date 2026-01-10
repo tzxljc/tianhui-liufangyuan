@@ -110,7 +110,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px;
+    gap: 30px;
     margin: 20px 0;
     max-width: 400px;
     padding: 10px;
@@ -205,20 +205,20 @@ body {
 .split-layout2 {
     display: flex;
     align-items: center;
-    gap: 15px;
-    width: 490px;
+    gap: 20px;
+    width: 100%;
     max-width: 100%;
-    margin: 20px auto;
-    padding: 0;
+    margin: 30px auto;
+    padding: 0 15px;
     flex-wrap: nowrap !important;
 }
 
 .split-text1,
 .split-text2 {
-    width: 275px;
+    flex: 1;
     font-size: 14px;
-    text-align: left;
     flex-shrink: 0;
+    padding-right: 15px;
 }
 
 .split-text1 {
@@ -231,19 +231,15 @@ body {
 
 .split-img1,
 .split-img2 {
+    flex: 0 0 200px;
+    /* 使用flex固定宽度 */
     width: 200px;
     height: 300px;
     overflow: hidden;
     flex-shrink: 0;
 }
 
-.split-img1 img {
-    width: 100%;
-    height: 100%;
-    border-radius: 15px;
-    object-fit: cover;
-}
-
+.split-img1 img,
 .split-img2 img {
     width: 100%;
     height: 100%;
@@ -439,7 +435,7 @@ body {
     border-radius: 15px;
 }
 
-/* 添加媒体查询，优化手机端体验 */
+/* 修改手机端媒体查询 */
 @media (max-width: 768px) {
     .container {
         padding: 15px 15px 0 15px;
@@ -457,24 +453,38 @@ body {
         margin: 30px auto;
     }
 
+    /* 修改这里：手机端也保持左右布局 */
     .split-layout1,
     .split-layout2 {
-        flex-direction: column;
+        flex-direction: row;
+        /* 保持水平排列 */
         width: 100%;
-        gap: 20px;
+        gap: 15px;
+        /* 缩小间距 */
+        padding: 0 10px;
+        margin: 20px auto;
+    }
+
+    /* 调整图片大小以适应手机屏幕 */
+    .split-img1,
+    .split-img2 {
+        flex: 0 0 150px;
+        /* 缩小图片宽度 */
+        width: 150px;
+        height: 225px;
+        /* 等比例缩小高度 */
     }
 
     .split-text1,
     .split-text2 {
-        width: 100%;
-        text-align: center !important;
+        font-size: 13px;
+        padding-right: 10px;
     }
 
-    .split-img1,
-    .split-img2 {
-        width: 100%;
-        max-width: 300px;
-        height: 250px;
+    .split-slogan1,
+    .split-slogan2 {
+        font-size: 18px;
+        margin: 10px 0 5px 0;
     }
 
     .countdown-container {
@@ -501,8 +511,31 @@ body {
     }
 }
 
-/* 强制开启GPU加速，提高滑动性能 */
-.container {
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
+/* 超小屏幕（如iPhone SE）调整 */
+@media (max-width: 375px) {
+
+    .split-layout1,
+    .split-layout2 {
+        gap: 10px;
+        padding: 0 5px;
+    }
+
+    .split-img1,
+    .split-img2 {
+        flex: 0 0 120px;
+        /* 更小的图片 */
+        width: 120px;
+        height: 180px;
+    }
+
+    .split-text1,
+    .split-text2 {
+        font-size: 12px;
+        padding-right: 5px;
+    }
+
+    .split-slogan1,
+    .split-slogan2 {
+        font-size: 16px;
+    }
 }
