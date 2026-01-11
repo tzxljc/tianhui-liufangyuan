@@ -29,7 +29,7 @@ body {
     font-family: sans-serif, "Microsoft Yahei", "汉仪甜心体";
     font-size: 14px !important;
     line-height: 1.8 !important;
-    position: relative;
+    position: relative !important;
     overflow-y: auto;
     overflow-x: hidden;
 
@@ -126,16 +126,10 @@ body {
 }
 
 .music-btn {
-    /* 移除float */
     float: none;
-
-    /* 使用绝对定位 */
     position: absolute;
     top: 15px;
-    /* 调整位置 */
     right: 15px;
-
-    /* 保持其他样式 */
     width: 30px;
     height: 30px;
     z-index: 9999;
@@ -147,6 +141,9 @@ body {
     font-size: 20px;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+    pointer-events: auto;
+    transform: translateZ(0);
 }
 
 /* 定义循环转动的动画 */
