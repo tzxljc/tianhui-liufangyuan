@@ -316,7 +316,7 @@
 
     </div>
 
-    <audio id="bg-music" autoplay loop preload="auto" src="刘人语 - 心跳的证明.mp3">
+    <audio id="bg-music" loop preload="auto" src="刘人语 - 心跳的证明.mp3">
         <source src="刘人语 - 心跳的证明.mp3" type="audio/mp3">
     </audio>
 
@@ -333,31 +333,34 @@
         let resumeTimer = null;
         let musicPlayed = false;
 
+        let hasPlayedByScroll = false;//标记是否通过滑动触发音乐播放
+
         // ========== 2. 音乐控制 ==========
         function setupMusic() {
-            let isPlaying = !bgMusic.paused; // 获取当前播放状态
+            let isPlaying = false; // 初始状态改为暂停（适配微信）
 
-            // 更新按钮初始状态
+            // 更新按钮初始状态（默认暂停）
             updateMusicButtonState();
 
             // 点击音乐按钮切换播放/暂停
             musicBtn.addEventListener('click', function (e) {
-                e.stopPropagation(); // 只阻止冒泡，不阻止默认行为
+                e.stopPropagation();
                 toggleMusic();
             });
 
             musicBtn.addEventListener('touchstart', function (e) {
-                e.preventDefault(); // 防止触摸滚动
+                e.preventDefault();
                 toggleMusic();
             }, { passive: false });
 
+            // 核心：切换音乐播放/暂停的通用函数
             function toggleMusic() {
                 if (bgMusic.paused) {
-                    bgMusic.muted = false; // 确保取消静音
+                    bgMusic.muted = false;
                     bgMusic.play().then(() => {
                         isPlaying = true;
-                        updateMusicButtonState();
                         musicPlayed = true;
+                        updateMusicButtonState();
                     }).catch(err => {
                         console.log('音乐播放失败:', err);
                         alert('请点击允许播放音乐');
@@ -369,16 +372,17 @@
                 }
             }
 
+            // 更新音乐按钮样式
             function updateMusicButtonState() {
                 if (bgMusic.paused) {
                     musicBtn.classList.remove('playing');
                     musicBtn.classList.add('paused');
-                    musicBtn.innerHTML = '&#127928;'; // 音乐图标
+                    musicBtn.innerHTML = '&#127928;';
                     musicBtn.title = '点击播放音乐';
                 } else {
                     musicBtn.classList.add('playing');
                     musicBtn.classList.remove('paused');
-                    musicBtn.innerHTML = '&#127928;'; // 音乐图标
+                    musicBtn.innerHTML = '&#127928;';
                     musicBtn.title = '点击暂停音乐';
                 }
             }
@@ -399,6 +403,42 @@
                 musicBtn.innerHTML = '❌';
                 musicBtn.title = '音乐加载失败';
             });
+
+            // ========== 新增：监听微信内滑动事件，触发音乐播放 ==========
+            function playMusicOnScroll() {
+                // 只触发一次，避免重复播放
+                if (!hasPlayedByScroll && bgMusic.paused) {
+                    bgMusic.play().then(() => {
+                        isPlaying = true;
+                        musicPlayed = true;
+                        hasPlayedByScroll = true; // 标记已通过滑动播放
+                        updateMusicButtonState();
+                    }).catch(err => {
+                        console.log('滑动触发播放失败:', err);
+                        // 失败则提示用户点击图标播放
+                        musicBtn.title = '滑动未触发播放，点击播放音乐';
+                    });
+                    // 触发后移除监听，避免重复执行
+                    container.removeEventListener('touchmove', playMusicOnScroll);
+                }
+            }
+
+            // 监听页面滑动（微信内用户下滑时触发）
+            container.addEventListener('touchmove', playMusicOnScroll, {
+                passive: true, // 提升移动端性能
+                once: true // 等价于上面的removeEventListener，只执行一次
+            });
+
+            // 浏览器端仍保留自动播放（兼容非微信场景）
+            if (!/(MicroMessenger)/i.test(navigator.userAgent)) {
+                bgMusic.play().then(() => {
+                    isPlaying = true;
+                    musicPlayed = true;
+                    updateMusicButtonState();
+                }).catch(err => {
+                    console.log('浏览器自动播放失败，等待用户交互:', err);
+                });
+            }
         }
 
         // ========== 3. 自动滚动 ==========
