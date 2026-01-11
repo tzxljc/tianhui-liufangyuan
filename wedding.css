@@ -127,8 +127,8 @@ body {
 
 .music-btn {
     position: sticky !important;
-    top: 15px;
-    right: 15px;
+    top: 5px;
+    right: 5px;
     float: right;
     /* 适配原有布局，确保靠右 */
     clear: right;
