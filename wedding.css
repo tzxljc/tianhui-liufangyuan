@@ -29,7 +29,7 @@ body {
     font-family: sans-serif, "Microsoft Yahei", "汉仪甜心体";
     font-size: 14px !important;
     line-height: 1.8 !important;
-    position: relative !important;
+    position: relative;
     overflow-y: auto;
     overflow-x: hidden;
 
@@ -126,8 +126,7 @@ body {
 }
 
 .music-btn {
-    float: none;
-    position: absolute;
+    position: fixed;
     top: 15px;
     right: 15px;
     width: 30px;
@@ -141,9 +140,6 @@ body {
     font-size: 20px;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-
-    pointer-events: auto;
-    transform: translateZ(0);
 }
 
 /* 定义循环转动的动画 */
