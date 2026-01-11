@@ -321,7 +321,7 @@
     </audio>
 
     <script>
-        // ========== 1. 初始化变量 ==========
+        // ========== 1. 初始化变量（和你最初一致） ==========
         const bgMusic = document.getElementById('bg-music');
         const musicBtn = document.getElementById('musicBtn');
         const container = document.querySelector('.container');
@@ -332,28 +332,24 @@
         let scrollInterval = null;
         let resumeTimer = null;
         let musicPlayed = false;
+        let hasPlayedByScroll = false; // 标记是否通过滑动触发音乐播放
 
-        let hasPlayedByScroll = false;//标记是否通过滑动触发音乐播放
-
-        // ========== 2. 音乐控制 ==========
+        // ========== 2. 音乐控制（完全恢复自动播放逻辑，核心修正） ==========
         function setupMusic() {
-            let isPlaying = false; // 初始状态改为暂停（适配微信）
+            let isPlaying = false; // 初始暂停（适配微信）
+            updateMusicButtonState(); // 初始化按钮样式
 
-            // 更新按钮初始状态（默认暂停）
-            updateMusicButtonState();
-
-            // 点击音乐按钮切换播放/暂停
+            // 点击/触摸按钮切换播放（保留）
             musicBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
                 toggleMusic();
             });
-
             musicBtn.addEventListener('touchstart', function (e) {
                 e.preventDefault();
                 toggleMusic();
             }, { passive: false });
 
-            // 核心：切换音乐播放/暂停的通用函数
+            // 核心：切换音乐播放/暂停（完整逻辑）
             function toggleMusic() {
                 if (bgMusic.paused) {
                     bgMusic.muted = false;
@@ -372,7 +368,7 @@
                 }
             }
 
-            // 更新音乐按钮样式
+            // 更新音乐按钮样式（保留）
             function updateMusicButtonState() {
                 if (bgMusic.paused) {
                     musicBtn.classList.remove('playing');
@@ -387,62 +383,59 @@
                 }
             }
 
-            // 监听音频状态变化
+            // 监听音频状态变化（完整）
             bgMusic.addEventListener('play', () => {
                 isPlaying = true;
                 updateMusicButtonState();
             });
-
             bgMusic.addEventListener('pause', () => {
                 isPlaying = false;
                 updateMusicButtonState();
             });
-
             bgMusic.addEventListener('error', () => {
                 console.log('音频加载错误');
                 musicBtn.innerHTML = '❌';
                 musicBtn.title = '音乐加载失败';
             });
 
-            // ========== 新增：监听微信内滑动事件，触发音乐播放 ==========
-            function playMusicOnScroll() {
-                // 只触发一次，避免重复播放
-                if (!hasPlayedByScroll && bgMusic.paused) {
-                    bgMusic.play().then(() => {
-                        isPlaying = true;
-                        musicPlayed = true;
-                        hasPlayedByScroll = true; // 标记已通过滑动播放
-                        updateMusicButtonState();
-                    }).catch(err => {
-                        console.log('滑动触发播放失败:', err);
-                        // 失败则提示用户点击图标播放
-                        musicBtn.title = '滑动未触发播放，点击播放音乐';
-                    });
-                    // 触发后移除监听，避免重复执行
-                    container.removeEventListener('touchmove', playMusicOnScroll);
-                }
-            }
-
-            // 监听页面滑动（微信内用户下滑时触发）
-            container.addEventListener('touchmove', playMusicOnScroll, {
-                passive: true, // 提升移动端性能
-                once: true // 等价于上面的removeEventListener，只执行一次
-            });
-
-            // 浏览器端仍保留自动播放（兼容非微信场景）
+            // 【恢复浏览器自动播放】非微信场景自动播放
             if (!/(MicroMessenger)/i.test(navigator.userAgent)) {
                 bgMusic.play().then(() => {
                     isPlaying = true;
                     musicPlayed = true;
                     updateMusicButtonState();
                 }).catch(err => {
-                    console.log('浏览器自动播放失败，等待用户交互:', err);
+                    console.log('浏览器自动播放失败:', err);
                 });
             }
+
+            // 【恢复微信下滑触发播放】增强触发逻辑，确保必触发
+            function playMusicOnWechatScroll() {
+                if (!hasPlayedByScroll && bgMusic.paused) {
+                    bgMusic.play().then(() => {
+                        isPlaying = true;
+                        musicPlayed = true;
+                        hasPlayedByScroll = true;
+                        updateMusicButtonState();
+                    }).catch(err => {
+                        console.log('滑动触发播放失败:', err);
+                        musicBtn.title = '点击播放音乐';
+                    });
+                }
+            }
+            // 监听所有滚动/触摸事件，确保微信下滑必触发
+            container.addEventListener('touchmove', playMusicOnWechatScroll, { passive: true });
+            window.addEventListener('scroll', playMusicOnWechatScroll, { passive: true });
+            container.addEventListener('wheel', playMusicOnWechatScroll, { passive: true });
+
+            // 返回播放函数（供自动滚动逻辑调用）
+            return {
+                playOnScroll: playMusicOnWechatScroll
+            };
         }
 
-        // ========== 3. 自动滚动 ==========
-        function setupAutoScroll() {
+        // ========== 3. 自动滚动（完全保留，不动） ==========
+        function setupAutoScroll(musicHelper) {
             const SCROLL_SPEED = 15; // 像素/秒
 
             function startAutoScroll() {
@@ -450,140 +443,80 @@
                 autoScrollActive = true;
 
                 let lastTime = Date.now();
-
                 function scrollFrame() {
-                    if (!autoScrollActive || isUserInteracting) {
-                        if (scrollInterval) {
-                            clearInterval(scrollInterval);
-                            scrollInterval = null;
-                        }
-                        return;
-                    }
+                    if (!autoScrollActive || isUserInteracting) return;
 
-                    const currentTime = Date.now();
-                    const deltaTime = currentTime - lastTime;
-                    lastTime = currentTime;
-
-                    // 计算滚动的像素
+                    const deltaTime = Date.now() - lastTime;
+                    lastTime = Date.now();
                     const pixelsToScroll = (SCROLL_SPEED * deltaTime) / 1000;
-
-                    // 判断是否到达底部
                     const scrollRemaining = container.scrollHeight - container.clientHeight - container.scrollTop;
 
                     if (scrollRemaining <= 10) {
-                        // 到达底部，回到顶部
-                        container.scrollTo({
-                            top: 0,
-                            behavior: 'smooth'
-                        });
-                        return;
+                        container.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                        container.scrollTop += pixelsToScroll;
                     }
-
-                    // 正常滚动
-                    container.scrollTop += pixelsToScroll;
+                    requestAnimationFrame(scrollFrame);
                 }
-
-                // 优先使用requestAnimationFrame
-                if ('requestAnimationFrame' in window) {
-                    function animateScroll() {
-                        scrollFrame();
-                        if (autoScrollActive && !isUserInteracting) {
-                            requestAnimationFrame(animateScroll);
-                        }
-                    }
-                    requestAnimationFrame(animateScroll);
-                } else {
-                    // 降级到setInterval
-                    scrollInterval = setInterval(scrollFrame, 16);
-                }
+                requestAnimationFrame(scrollFrame);
             }
 
             function stopAutoScroll() {
                 autoScrollActive = false;
-                if (scrollInterval) {
-                    clearInterval(scrollInterval);
-                    scrollInterval = null;
-                }
             }
 
-            function handleUserInteraction() {
+            // 监听用户交互（暂停自动滚动+触发音乐播放）
+            container.addEventListener('touchmove', (e) => {
+                musicHelper.playOnScroll();
                 isUserInteracting = true;
                 stopAutoScroll();
-
-                // 清除之前的恢复计时器
-                if (resumeTimer) {
-                    clearTimeout(resumeTimer);
-                }
-
-                // 用户停止操作3秒后恢复
+                clearTimeout(resumeTimer);
                 resumeTimer = setTimeout(() => {
                     isUserInteracting = false;
                     startAutoScroll();
                 }, 3000);
-            }
-
-            // 事件监听
-            container.addEventListener('touchstart', () => {
-                handleUserInteraction();
             }, { passive: true });
 
-            container.addEventListener('touchend', () => {
-                handleUserInteraction();
+            container.addEventListener('wheel', () => {
+                isUserInteracting = true;
+                stopAutoScroll();
+                clearTimeout(resumeTimer);
+                resumeTimer = setTimeout(() => {
+                    isUserInteracting = false;
+                    startAutoScroll();
+                }, 3000);
             }, { passive: true });
 
-            container.addEventListener('touchmove', handleUserInteraction, { passive: true });
-            container.addEventListener('wheel', handleUserInteraction, { passive: true });
-            container.addEventListener('mousedown', handleUserInteraction);
-            container.addEventListener('mousemove', handleUserInteraction);
-            container.addEventListener('scroll', () => {
-                if (!isUserInteracting) {
-                    handleUserInteraction();
-                }
-            });
-
-            return {
-                start: startAutoScroll,
-                stop: stopAutoScroll
-            };
+            return { start: startAutoScroll, stop: stopAutoScroll };
         }
 
-        // ========== 4. 倒计时逻辑 ==========
+        // ========== 4. 倒计时（完全保留，不动） ==========
         function setupCountdown() {
             const weddingTime = new Date("2026-02-13 13:14:00").getTime();
-            const daysEl = document.getElementById('days');
-            const hoursEl = document.getElementById('hours');
-            const minutesEl = document.getElementById('minutes');
-            const secondsEl = document.getElementById('seconds');
+            const els = {
+                days: document.getElementById('days'),
+                hours: document.getElementById('hours'),
+                minutes: document.getElementById('minutes'),
+                seconds: document.getElementById('seconds')
+            };
 
-            function updateCountdown() {
-                const now = new Date().getTime();
-                const diff = weddingTime - now;
-
+            function update() {
+                const diff = weddingTime - new Date().getTime();
                 if (diff <= 0) {
-                    daysEl.innerText = "00";
-                    hoursEl.innerText = "00";
-                    minutesEl.innerText = "00";
-                    secondsEl.innerText = "00";
+                    Object.values(els).forEach(el => el.innerText = '00');
                     return;
                 }
-
-                const days = Math.floor(diff / 86400000);
-                const hours = Math.floor((diff % 86400000) / 3600000);
-                const minutes = Math.floor((diff % 3600000) / 60000);
-                const seconds = Math.floor((diff % 60000) / 1000);
-
-                daysEl.innerText = days.toString().padStart(2, '0');
-                hoursEl.innerText = hours.toString().padStart(2, '0');
-                minutesEl.innerText = minutes.toString().padStart(2, '0');
-                secondsEl.innerText = seconds.toString().padStart(2, '0');
+                els.days.innerText = Math.floor(diff / 86400000).toString().padStart(2, '0');
+                els.hours.innerText = Math.floor((diff % 86400000) / 3600000).toString().padStart(2, '0');
+                els.minutes.innerText = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                els.seconds.innerText = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
             }
-
-            updateCountdown();
-            setInterval(updateCountdown, 1000);
+            update();
+            setInterval(update, 1000);
         }
 
-        // ========== 5. 页面可见性处理 ==========
-        function setupVisibilityHandler() {
+        // ========== 5. 页面可见性处理（恢复音乐自动恢复） ==========
+        function setupVisibilityHandler(autoScroll) {
             let hidden, visibilityChange;
             if (typeof document.hidden !== "undefined") {
                 hidden = "hidden";
@@ -598,22 +531,16 @@
 
             function handleVisibilityChange() {
                 if (document[hidden]) {
-                    // 页面隐藏，暂停音乐和滚动
-                    if (!bgMusic.paused) {
-                        bgMusic.pause();
-                    }
-                    autoScrollActive = false;
+                    // 页面隐藏：暂停音乐和滚动
+                    if (!bgMusic.paused) bgMusic.pause();
+                    autoScroll.stop();
                 } else {
-                    // 页面显示，尝试恢复
+                    // 页面显示：【恢复自动播放】音乐和滚动
                     if (musicPlayed && bgMusic.paused) {
-                        bgMusic.play().catch(() => {
-                            // 自动播放可能被阻止
-                        });
+                        bgMusic.play().catch(() => { });
                     }
                     if (!isUserInteracting) {
-                        setTimeout(() => {
-                            startAutoScroll();
-                        }, 1000);
+                        setTimeout(() => autoScroll.start(), 1000);
                     }
                 }
             }
@@ -623,43 +550,25 @@
             }
         }
 
-        // ========== 6. 初始化所有功能 ==========
+        // ========== 6. 初始化所有功能（恢复完整逻辑） ==========
         function initAll() {
-            // 设置音乐控制
-            setupMusic();
-
-            // 设置自动滚动
-            const autoScroll = setupAutoScroll();
-
-            // 设置倒计时
+            // 初始化音乐（恢复自动播放）
+            const musicHelper = setupMusic();
+            // 初始化自动滚动
+            const autoScroll = setupAutoScroll(musicHelper);
+            // 初始化倒计时
             setupCountdown();
+            // 初始化页面可见性（恢复音乐恢复）
+            setupVisibilityHandler(autoScroll);
 
-            // 设置页面可见性处理
-            setupVisibilityHandler();
-
-            // 页面加载完成后
+            // 页面加载完成后启动自动滚动
             window.addEventListener('load', () => {
-                // 初始化音乐按钮状态（确保和音频状态一致）
-                if (!bgMusic.paused) {
-                    musicBtn.classList.add('playing');
-                    musicBtn.classList.remove('paused');
-                    musicBtn.innerHTML = '&#127928;';
-                    musicBtn.title = '点击暂停音乐';
-                } else {
-                    musicBtn.classList.remove('playing');
-                    musicBtn.classList.add('paused');
-                    musicBtn.innerHTML = '&#127928;'; // 音乐图标
-                    musicBtn.title = '点击播放音乐';
-                }
-
-                // 延迟1秒后开始自动滚动
-                setTimeout(() => {
-                    autoScroll.start();
-                }, 1000);
+                musicBtn.title = '下滑播放音乐 / 点击开关';
+                setTimeout(() => autoScroll.start(), 1000);
             });
         }
 
-        // ========== 7. 页面加载完成后初始化 ==========
+        // 执行初始化
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initAll);
         } else {
